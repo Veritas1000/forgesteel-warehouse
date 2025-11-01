@@ -1,9 +1,9 @@
 import pytest
-from forgesteel_vault import create_app
+from forgesteel_vault import init_app
 
 @pytest.fixture()
 def app():
-    app = create_app()
+    app = init_app()
     app.config.update({
         "TESTING": True,
     })

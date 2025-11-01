@@ -24,7 +24,7 @@ python -m pip freeze > requirements.txt
 
 Run the api backend in development mode:
 ```bash
-flask --app forgesteel-vault/app run --debug
+flask --app 'forgesteel_vault:init_app()' run --debug
 ```
 
 ### API layer
