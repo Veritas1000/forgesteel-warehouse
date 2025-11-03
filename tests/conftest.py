@@ -1,19 +1,35 @@
+from flask import session
 import pytest
-from forgesteel_vault import init_app
 
-@pytest.fixture()
+from forgesteel_warehouse import init_app, db
+from forgesteel_warehouse.models import User
+
+@pytest.fixture(scope="session")
 def app():
-    app = init_app()
-    app.config.update({
+    test_config = {
         "TESTING": True,
-    })
-    yield app
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+    }
+    app = init_app(test_config)
+    
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
 
 @pytest.fixture()
 def client(app):
     return app.test_client()
 
+@pytest.fixture(scope="session")
+def load_test_users(app):
+    with app.app_context():
+        auth_key = 'TOKEN-1'
+        user1 = User(name='user1', auth_key=auth_key)
+        db.session.add(user1)
+        db.session.commit()
+        
+        yield user1.id
 
-@pytest.fixture()
-def runner(app):
-    return app.test_cli_runner()
+        db.session.delete(user1)

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from forgesteel_vault import __version__
+from forgesteel_warehouse import __version__
 
 healthz = Blueprint('healthz', __name__)
 

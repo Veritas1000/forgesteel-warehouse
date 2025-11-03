@@ -1,4 +1,4 @@
-from forgesteel_vault import init_app
+from forgesteel_warehouse import init_app
 
 app = init_app()
 

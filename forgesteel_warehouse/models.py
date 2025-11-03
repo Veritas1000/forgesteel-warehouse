@@ -1,0 +1,34 @@
+import uuid
+import logging
+
+from . import db, jwt
+
+log = logging.getLogger(__name__)
+
+class User(db.Model):
+    id = db.mapped_column(db.Integer, primary_key=True)
+    name = db.mapped_column(db.String(100))
+    auth_key = db.mapped_column(db.String(80))
+
+    def __init__(self, name, auth_key=None):
+        self.name = name
+        self.auth_key = auth_key or uuid.uuid4().hex
+
+    @classmethod
+    def find_by_auth_key(cls, auth_key):
+        return cls.query.filter_by(auth_key=auth_key).one_or_none()
+
+# Register a callback function that takes whatever object is passed in as the
+# identity when creating JWTs and converts it to a JSON serializable format.
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return str(user.id)
+
+# Register a callback function that loads a user from your database whenever
+# a protected route is accessed. This should return any python object on a
+# successful lookup, or None if the lookup failed for any reason (for example
+# if the user has been deleted from the database).
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = int(jwt_data["sub"])
+    return User.query.filter_by(id=identity).one_or_none()

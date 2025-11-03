@@ -1,4 +1,4 @@
-# Forge Steel - Vault
+# Forge Steel - Warehouse
 
 A data backend for [Forge Steel](https://andyaiken.github.io/forgesteel/)
 
@@ -7,6 +7,11 @@ A data backend for [Forge Steel](https://andyaiken.github.io/forgesteel/)
 ## Development
 
 ### Set up python virtual environment
+Create  the virtual environment:
+```bash
+python3 -m venv .venv
+```
+
 Activate the virtual environment:
 ```bash
 . .venv/bin/activate
@@ -24,7 +29,7 @@ python -m pip freeze > requirements.txt
 
 Run the api backend in development mode:
 ```bash
-flask --app 'forgesteel_vault:init_app()' run --debug
+flask --app 'forgesteel_warehouse:init_app()' run --debug
 ```
 
 ### API layer
