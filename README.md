@@ -32,14 +32,33 @@ Run the api backend in development mode:
 flask --app 'forgesteel_warehouse:init_app()' run --debug
 ```
 
-### API layer
+### Run tests
 
-- REST api for user authentication and handling data transfers to/from forgesteel.
+```bash
+python -m pytest .
+```
 
-### Data layer
+### Build container
 
-- postgres database storing jbon documents of raw forgesteel data models
+```bash
+docker build -t fs-warehouse:latest -f Containerfile .
+```
+
+### Run container
+
+```bash
+docker run --rm -p 5000:5000 --name fs-warehouse fs-warehouse:latest 
+```
 
 ### Todos
 
-- [ ] Initial database
+- [x] Initial database
+- [x] Direct (api token) Authentication
+- [x] Initial container
+- [ ] Bootstrap single-user container
+- [ ] Secure deployment
+- [ ] CI
+- [ ] Integration/smoke tests
+- [ ] Add actual data storage
+- [ ] Add TLS
+- [ ] Patreon OAuth integration
