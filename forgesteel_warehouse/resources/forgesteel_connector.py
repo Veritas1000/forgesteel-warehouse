@@ -2,7 +2,6 @@ import logging
 
 from flask import Blueprint, jsonify, request, make_response
 from flask_jwt_extended import create_access_token, jwt_required, current_user
-from hmac import compare_digest
 
 from forgesteel_warehouse.models import User
 
@@ -14,11 +13,13 @@ forgesteel_connector = Blueprint('forgesteel_connector', __name__)
 def connect():
     auth = request.authorization
     if auth and auth.token:
-        user = User.find_by_auth_key(auth.token)
-        if user and compare_digest(user.auth_key, auth.token):
-            access_token = create_access_token(identity=user)
-            return jsonify(access_token=access_token) 
-        
+        try:
+            user = User.find_by_api_token(auth.token)
+            if user:
+                access_token = create_access_token(identity=user)
+                return jsonify(access_token=access_token) 
+        except ValueError:
+            pass
         return make_response(jsonify(message='Invalid token'), 401, {'WWW-Authenticate': 'Bearer realm="Authorization required"'})
 
     return make_response(jsonify(message='Token required'), 400, {'WWW-Authenticate': 'Bearer realm="Authorization required"'})

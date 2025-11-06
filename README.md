@@ -19,7 +19,7 @@ Activate the virtual environment:
 
 Install dependencies:
 ```bash
-python3 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Update dependencies to latest:
@@ -29,7 +29,7 @@ python -m pip freeze > requirements.txt
 
 Run the api backend in development mode:
 ```bash
-flask --app 'forgesteel_warehouse:init_app()' run --debug
+python wsgi.py
 ```
 
 ### Run tests
@@ -56,9 +56,10 @@ docker run --rm -p 5000:5000 --name fs-warehouse fs-warehouse:latest
 - [x] Direct (api token) Authentication
 - [x] Initial container
 - [ ] Bootstrap single-user container
+- [ ] Persistent container storage
 - [ ] Secure deployment
 - [ ] CI
 - [ ] Integration/smoke tests
-- [ ] Add actual data storage
 - [ ] Add TLS
+- [ ] Add postgres storage support?
 - [ ] Patreon OAuth integration

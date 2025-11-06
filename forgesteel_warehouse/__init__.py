@@ -45,7 +45,7 @@ def init_app(app_config=None):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     ## Configuration
-    app.config["JWT_SECRET_KEY"] = 'your_jwt_secret_key'
+    app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
     app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
     
     app.config['SESSION_COOKIE_SECURE'] = True
