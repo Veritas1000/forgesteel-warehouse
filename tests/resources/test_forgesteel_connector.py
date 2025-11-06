@@ -3,8 +3,13 @@ def test_connect_returns_400_if_no_token(client):
     assert response.status_code == 400
     assert response.json['message'] == 'Token required'
 
-def test_connect_returns_401_with_bad_token(client, test_user):
+def test_connect_returns_401_with_malformed_token(client, test_user):
     response = client.get('/connect', headers=[['Authorization', 'Bearer BAD_TOKEN']])
+    assert response.status_code == 401
+    assert response.json['message'] == 'Invalid token'
+
+def test_connect_returns_401_with_bad_token(client, test_user):
+    response = client.get('/connect', headers=[['Authorization', 'Bearer $1$BAD_TOKEN']])
     assert response.status_code == 401
     assert response.json['message'] == 'Invalid token'
 

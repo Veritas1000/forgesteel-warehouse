@@ -18,7 +18,7 @@ def connect():
             if user:
                 access_token = create_access_token(identity=user)
                 return jsonify(access_token=access_token) 
-        except ValueError:
+        except:
             pass
         return make_response(jsonify(message='Invalid token'), 401, {'WWW-Authenticate': 'Bearer realm="Authorization required"'})
 

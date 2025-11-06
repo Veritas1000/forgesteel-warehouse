@@ -1,11 +1,34 @@
 import uuid
 import textwrap
+import json
+import os
 
 from sqlalchemy import func
 
 from forgesteel_warehouse import db, init_app
 from forgesteel_warehouse.models import User
 from forgesteel_warehouse.api_key import ApiKey
+
+def create_or_load_config():
+    config_path = os.getenv('FSW_CONFIG_PATH', '/data/config.json')
+    with open(config_path, 'w+', encoding='utf-8') as config_file:
+        changed = False
+        try:
+            config = json.load(config_file)
+        except:
+            config = {}
+
+        if 'SECRET_KEY' not in config.keys():
+            config['SECRET_KEY'] = uuid.uuid4().hex
+            changed = True
+        if 'JWT_SECRET_KEY' not in config.keys():
+            config['JWT_SECRET_KEY'] = uuid.uuid4().hex
+            changed = True
+
+        if changed:
+            json.dump(config, config_file, ensure_ascii=False, indent=4)
+
+    return config
 
 def add_default_user(app):
     with app.app_context():
@@ -34,8 +57,9 @@ def print_key(key):
 
 ## Bootstrap the warehouse
 if __name__ == "__main__":
+    config = create_or_load_config()
     ## Initialize the DB
-    app = init_app()
+    app = init_app(config)
     with app.app_context():
         db.create_all()
         ## Check if any user exists

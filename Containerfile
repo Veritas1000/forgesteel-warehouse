@@ -10,6 +10,13 @@ RUN pip install --upgrade pip && \
 
 COPY forgesteel_warehouse/ forgesteel_warehouse/
 
+COPY container/ .
+RUN chmod +x runWarehouse.sh
+
+VOLUME /data
+
+ENV DATABASE_URI=sqlite:////data/db.sqlite
+
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "forgesteel_warehouse:init_app()"]
+CMD ["./runWarehouse.sh"]

@@ -1,4 +1,3 @@
-from flask import session
 import pytest
 
 from forgesteel_warehouse import init_app, db

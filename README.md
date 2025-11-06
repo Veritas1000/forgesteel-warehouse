@@ -47,7 +47,7 @@ docker build -t fs-warehouse:latest -f Containerfile .
 ### Run container
 
 ```bash
-docker run --rm -p 5000:5000 --name fs-warehouse fs-warehouse:latest 
+docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehouse:latest 
 ```
 
 ### Todos
@@ -55,11 +55,14 @@ docker run --rm -p 5000:5000 --name fs-warehouse fs-warehouse:latest
 - [x] Initial database
 - [x] Direct (api token) Authentication
 - [x] Initial container
-- [ ] Bootstrap single-user container
-- [ ] Persistent container storage
-- [ ] Secure deployment
-- [ ] CI
+- [x] Bootstrap single-user container
+- [x] Persistent container storage
+- [x] Secure deployment
+    - [x] JWT_SECRET_KEY
+    - [x] SECRET_KEY
+- [ ] CI setup
 - [ ] Integration/smoke tests
 - [ ] Add TLS
 - [ ] Add postgres storage support?
+- [ ] Rotating/regenerating single-user key
 - [ ] Patreon OAuth integration

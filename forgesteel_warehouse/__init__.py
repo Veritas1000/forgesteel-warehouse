@@ -35,18 +35,12 @@ def init_app(app_config=None):
     root.addHandler(handler)
 
     ## Get database URI from environment variables or use default
-    DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///:memory:')
-
-    if app_config:
-        app.config.update(app_config)
-    else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
-
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI', 'sqlite:///:memory:')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     ## Configuration
-    app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
-    app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
+    app.config['JWT_SECRET_KEY'] = 'test-jwt-secret-key-change-in-prod'
+    app.config['SECRET_KEY'] ='test-secret-key-change-in-prod'
     
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -54,6 +48,10 @@ def init_app(app_config=None):
     
     app.config['JWT_TOKEN_LOCATION'] = ['headers']
     
+    ## Prioritize passed in config over all
+    if app_config:
+        app.config.update(app_config)
+
     ## Initialize extensions with app
     db.init_app(app)
     jwt.init_app(app)
@@ -71,10 +69,3 @@ def init_app(app_config=None):
         app.register_blueprint(forgesteel_connector)
 
         return app
-
-## pretty sure this needs to go elsewhere
-# if __name__ == "__main__":
-#     app = init_app()
-#     with app.app_context():
-#         db.create_all()
-#     app.run(debug=True)
