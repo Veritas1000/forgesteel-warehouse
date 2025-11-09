@@ -1,15 +1,35 @@
-image: python:3.14-slim
+default:
+  image: docker:28.5.1-cli
+  services:
+    - docker:28.5.1-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
 
 stages:
   - test
+  - build
 
-before_script:
-  - apt-get update -qy
-  - pip install --no-cache-dir -r requirements.txt
-  - pip install --no-cache-dir -r requirements-testing.txt
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
-unit-tests:
+build_container:
+  stage: build
+  image: docker:28.5.1-cli
+  services:
+    - docker:28.5.1.-dind
+  before_script:
+    - docker info
+  script:
+    - docker build --pull -t $CONTAINER_TEST_IMAGE -f Containerfile .
+    - docker push $CONTAINER_TEST_IMAGE
+
+unit_tests:
   stage: test
+  image: python:3.14-slim
+  before_script:
+    - pip install --no-cache-dir -r requirements.txt
+    - pip install --no-cache-dir -r requirements-testing.txt
   script:
     - coverage run -m pytest
     - coverage report
