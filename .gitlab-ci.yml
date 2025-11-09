@@ -17,7 +17,7 @@ build_container:
   stage: build
   image: docker:28.5.1-cli
   services:
-    - docker:28.5.1.-dind
+    - docker:28.5.1-dind
   before_script:
     - docker info
   script:
