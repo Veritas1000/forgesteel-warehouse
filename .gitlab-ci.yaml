@@ -1,0 +1,15 @@
+image: python:3.14-slim
+
+stages:
+  - test
+
+before_script:
+  - apt-get update -qy
+  - pip install --no-cache-dir -r requirements.txt
+  - pip install --no-cache-dir -r requirements-testing.txt
+
+unit-tests:
+  stage: test
+  script:
+    - coverage run -m pytest
+    - coverage report
