@@ -32,3 +32,4 @@ unit tests:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+      junit: result.xml
