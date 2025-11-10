@@ -68,6 +68,7 @@ docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehou
 - [x] CI setup
 - [ ] Unit test and coverage reports in CI
 - [ ] Integration/smoke tests
+- [ ] pipeline cleanup job
 - [ ] Add TLS? Or assume proxy?
 - [ ] Add postgres storage support?
 - [ ] Rotating/regenerating single-user key
