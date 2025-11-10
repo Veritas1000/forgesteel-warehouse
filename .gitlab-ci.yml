@@ -26,7 +26,7 @@ unit tests:
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir -r requirements-testing.txt
   script:
-    - python -m pytest --cov --cov-report term --cov-report xml:coverage.xml
+    - python -m pytest --cov --cov-report term --cov-report xml:coverage.xml --junitxml=result.xml
   artifacts:
     reports:
       coverage_report:
