@@ -38,6 +38,11 @@ python wsgi.py
 python -m pytest .
 ```
 
+With coverage:
+```bash
+python -m pytest --cov --cov-report term --cov-report xml:coverage.xml
+```
+
 ### Build container
 
 ```bash

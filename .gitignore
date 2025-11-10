@@ -5,3 +5,4 @@ __pycache__
 .env
 instance/
 bruno/
+coverage.xml
