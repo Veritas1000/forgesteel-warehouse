@@ -1,7 +1,8 @@
-import uuid
-import textwrap
 import json
 import os
+import secrets
+import textwrap
+import uuid
 
 from sqlalchemy import func
 
@@ -19,10 +20,10 @@ def create_or_load_config():
             config = {}
 
         if 'SECRET_KEY' not in config.keys():
-            config['SECRET_KEY'] = uuid.uuid4().hex
+            config['SECRET_KEY'] = secrets.token_hex(64)
             changed = True
         if 'JWT_SECRET_KEY' not in config.keys():
-            config['JWT_SECRET_KEY'] = uuid.uuid4().hex
+            config['JWT_SECRET_KEY'] = secrets.token_hex(64)
             changed = True
 
         if changed:

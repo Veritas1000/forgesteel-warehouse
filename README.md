@@ -40,13 +40,13 @@ python -m pytest .
 
 With coverage:
 ```bash
-python -m pytest --cov --cov-report term --cov-report xml:coverage.xml
+python -m pytest --cov --cov-report term
 ```
 
 ### Build container
 
 ```bash
-docker build -t fs-warehouse:latest -f Containerfile .
+docker build -t fs-warehouse -f Containerfile .
 ```
 
 ### Run container
@@ -66,7 +66,9 @@ docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehou
     - [x] JWT_SECRET_KEY
     - [x] SECRET_KEY
 - [x] CI setup
-- [ ] Unit test and coverage reports in CI
+- [x] Unit test and coverage reports in CI
+- [ ] Add actual forgesteel data storage
+- [ ] Publish to public (GitHub?)*
 - [ ] Integration/smoke tests
 - [ ] pipeline cleanup job
 - [ ] Add TLS? Or assume proxy?
