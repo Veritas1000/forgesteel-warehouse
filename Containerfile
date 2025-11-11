@@ -16,6 +16,7 @@ RUN chmod +x runWarehouse.sh
 VOLUME /data
 
 ENV DATABASE_URI=sqlite:////data/db.sqlite
+ENV FSW_CONFIG_PATH=/data/config.json
 
 EXPOSE 5000
 

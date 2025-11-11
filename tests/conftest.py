@@ -1,8 +1,9 @@
 import pytest
 
+from dotenv import find_dotenv, load_dotenv
 from forgesteel_warehouse import init_app, db
-from forgesteel_warehouse.models import User
 from forgesteel_warehouse.api_key import ApiKey
+from forgesteel_warehouse.models import User
 
 @pytest.fixture(scope="session")
 def app():

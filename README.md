@@ -70,6 +70,8 @@ docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehou
 - [ ] Add actual forgesteel data storage
 - [ ] Publish to public (GitHub?)*
 - [ ] Integration/smoke tests
+    - [ ] verify loading config
+    - [ ] bootstrap doesn't overwrite config values
 - [ ] pipeline cleanup job
 - [ ] Add TLS? Or assume proxy?
 - [ ] Add postgres storage support?
