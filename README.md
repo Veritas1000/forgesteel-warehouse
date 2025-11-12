@@ -2,7 +2,17 @@
 
 A data backend for [Forge Steel](https://andyaiken.github.io/forgesteel/)
 
+Forge Steel Warehouse runs as a container that exposes an api which Forge Steel can use to store your Hero and Sourcebook data *outside* your browser. This means you can share data cross devices, and not worry about a browser update wiping out all of your created characters.
+
 ## Usage
+
+Run fs-warehouse interactively like so:
+
+```bash
+run --rm -it --name fs-warehouse -p 5000:5000 -v <local/data>:/data fs-warehouse
+```
+
+The first time it starts up, it will initialize the database and generate an API key for you - **save it someplaec secure**! This is how you will connect Forge Steel with your individual warehouse.
 
 ## Development
 
@@ -57,17 +67,14 @@ docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehou
 
 ### Todos
 
-- [x] Initial database
-- [x] Direct (api token) Authentication
-- [x] Initial container
-- [x] Bootstrap single-user container
-- [x] Persistent container storage
-- [x] Secure deployment
-    - [x] JWT_SECRET_KEY
-    - [x] SECRET_KEY
 - [x] CI setup
 - [x] Unit test and coverage reports in CI
 - [ ] Add actual forgesteel data storage
+    - [ ] heroes
+    - [ ] playbook
+    - [ ] homebrew-settings
+    - [ ] hidden-setting-ids (?)
+    - [ ] session (?)
 - [ ] Publish to public (GitHub?)*
 - [ ] Integration/smoke tests
     - [ ] verify loading config

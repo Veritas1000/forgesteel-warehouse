@@ -77,5 +77,8 @@ def init_app(app_config=None):
 
         from .resources.forgesteel_connector import forgesteel_connector
         app.register_blueprint(forgesteel_connector)
+        
+        from .resources.forgesteel_data import forgesteel_data
+        app.register_blueprint(forgesteel_data)
 
         return app

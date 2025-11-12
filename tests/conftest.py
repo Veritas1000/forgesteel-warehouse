@@ -1,6 +1,5 @@
 import pytest
 
-from dotenv import find_dotenv, load_dotenv
 from forgesteel_warehouse import init_app, db
 from forgesteel_warehouse.api_key import ApiKey
 from forgesteel_warehouse.models import User
@@ -39,3 +38,9 @@ def test_user(app):
 @pytest.fixture(scope="session")
 def test_user_token(test_user):
     return ApiKey.makeApiKey(test_user.id, 'TOKEN-1')
+
+@pytest.fixture(scope="session")
+def auth_token(app, test_user_token):
+    authResponse = app.test_client().get('/connect', headers=[['Authorization', f"Bearer {test_user_token}"]])
+    token = authResponse.json['access_token']
+    return token

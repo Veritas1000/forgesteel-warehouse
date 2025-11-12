@@ -1,15 +1,19 @@
 import logging
 from argon2 import PasswordHasher
 
-from . import db, jwt
-from .api_key import ApiKey
+from forgesteel_warehouse import db, jwt
+from forgesteel_warehouse.api_key import ApiKey
 
 log = logging.getLogger(__name__)
 
 class User(db.Model):
+    __tablename__ = 'user'
+
     id = db.mapped_column(db.Integer, primary_key=True)
     name = db.mapped_column(db.String(100))
     auth_key = db.mapped_column(db.String(80))
+    
+    heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
 
     def __init__(self, name, auth_key=None):
         self.name = name
@@ -55,3 +59,16 @@ def user_identity_lookup(user):
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = int(jwt_data["sub"])
     return User.query.filter_by(id=identity).one_or_none()
+
+class FsHeroes(db.Model):
+    __tablename__ = 'fs_heroes'
+    
+    id = db.mapped_column(db.Integer, primary_key=True)
+    user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
+    user = db.relationship('User', back_populates='heroes')
+
+    data = db.mapped_column(db.JSON)
+
+    def __init__(self, user, data):
+        self.user = user
+        self.data = data
