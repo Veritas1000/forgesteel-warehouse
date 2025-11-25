@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, current_user
 
 from forgesteel_warehouse import db
-from forgesteel_warehouse.models import FsHeroes, FsHomebrew, FsSession
+from forgesteel_warehouse.models import FsHeroes, FsHiddenSettings, FsHomebrew, FsSession
 
 log = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ def get_data_types():
         'forgesteel-heroes',
         'forgesteel-homebrew-settings',
         'forgesteel-session',
+        'forgesteel-hidden-setting-ids',
         ]), 200)
 
 @forgesteel_data.get('/data/<key>')
@@ -31,6 +32,9 @@ def get_data(key):
             return make_response(jsonify(data=data), 200)
         case 'forgesteel-session':
             data = current_user.session.data if current_user.session is not None else None
+            return make_response(jsonify(data=data), 200)
+        case 'forgesteel-hidden-setting-ids':
+            data = current_user.hidden_settings.data if current_user.hidden_settings is not None else None
             return make_response(jsonify(data=data), 200)
         case _:
             return make_response(jsonify(message=f"Unknown data key: {key}"), 404)
@@ -61,6 +65,13 @@ def put_data(key):
                 db.session.add(session)
             else:
                 session.data = data
+        case 'forgesteel-hidden-setting-ids':
+            hidden_settings = FsHiddenSettings.query.filter_by(user=current_user).one_or_none()
+            if hidden_settings is None:
+                hidden_settings = FsHiddenSettings(current_user, data)
+                db.session.add(hidden_settings)
+            else:
+                hidden_settings.data = data
         case _:
             return make_response(jsonify(message=f"Unknown data key: {key}"), 404)
     

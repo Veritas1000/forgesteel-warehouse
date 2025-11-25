@@ -91,7 +91,7 @@ docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehou
     - [x] heroes
     - [ ] playbook
     - [x] homebrew-settings
-    - [ ] hidden-setting-ids
+    - [x] hidden-setting-ids
     - [x] session
 - [ ] Add container publish to CI
 - [ ] Integration/smoke tests

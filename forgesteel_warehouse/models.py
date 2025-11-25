@@ -16,6 +16,7 @@ class User(db.Model):
     heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
     homebrew = db.relationship('FsHomebrew', uselist=False, back_populates='user')
     session = db.relationship('FsSession', uselist=False, back_populates='user')
+    hidden_settings = db.relationship('FsHiddenSettings', uselist=False, back_populates='user')
 
     def __init__(self, name, auth_key=None):
         self.name = name
@@ -94,6 +95,19 @@ class FsSession(db.Model):
     id = db.mapped_column(db.Integer, primary_key=True)
     user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
     user = db.relationship('User', back_populates='session')
+
+    data = db.mapped_column(db.JSON)
+
+    def __init__(self, user, data):
+        self.user = user
+        self.data = data
+
+class FsHiddenSettings(db.Model):
+    __tablename__ = 'fs_hidden_settings'
+    
+    id = db.mapped_column(db.Integer, primary_key=True)
+    user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
+    user = db.relationship('User', back_populates='hidden_settings')
 
     data = db.mapped_column(db.JSON)
 

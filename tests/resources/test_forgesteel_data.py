@@ -10,6 +10,7 @@ def test_get_data_with_token_returns_keys(client, auth_token):
     assert 'forgesteel-heroes' in response.json['keys']
     assert 'forgesteel-homebrew-settings' in response.json['keys']
     assert 'forgesteel-session' in response.json['keys']
+    assert 'forgesteel-hidden-setting-ids' in response.json['keys']
 
 def test_get_data_sub_without_token_returns_401(client, test_user):
     response = client.get('/data/anything-here')
