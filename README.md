@@ -17,15 +17,62 @@ For wider access to your self-hosted forgesteel-warehouse instance, it is also a
 - *(Optional - required for remote access)* Routed and secured port access to where the container is running.
 
 ### Initial setup and configuration
-Create a directory on the host machine where the forgesteel-warehouse data and configuration will live. For simplicity, this example will just use a local directory `/data/forgesteel`.
 
-Run fs-warehouse interactively like so:
+Pull the latest image from docker hub:
+```bash
+docker pull veritas1000/forgesteel-warehouse
+```
+
+Create a directory on the host machine where the forgesteel-warehouse data and configuration will live. For simplicity, this example will just use the directory `/data/forgesteel`.
+
+The first time you run forgesteel-warehouse, run it interactively like so:
 
 ```bash
-run --rm -it --name fs-warehouse -p 5000:5000 -v /data/forgesteel:/data fs-warehouse
+run --rm -it --name fs-warehouse -p 5000:5000 -v /data/forgesteel:/data veritas1000/forgesteel-warehouse
 ```
 
 The first time it starts up, it will initialize the database and generate an API key for you, displaying it in the session - **save it someplace secure**! This is how you will connect Forge Steel with your individual warehouse.
+
+### Running with `docker compose`
+Create a copy of `compose-template.yaml` for your local instance:
+```bash
+cp compose-template.yaml compose.yaml
+```
+
+Edit `compose.yaml`, changing the line under `volumes:`:
+```
+- /path/to/local/data/dir:/data
+```
+
+Change `/path/to/local/data/dir` to the local directory where you want the database and configuration stored (e.g. `/data/forgesteel`)
+
+Then, start forgesteel-warehouse by running `docker compose up -d`
+
+### Connecting with Forge Steel
+*Note: This is currently in a closed beta, so you will need to enable the feature flag to see the connection settings for forgesteel-warehouse*
+
+- In Forge Steel, go to the **Admin** section under **Settings**.
+
+- There, expand the 'Forge Steel Warehouse' section, and turn on `Connect with Forge Steel Warehouse'.
+
+- Enter the hostname and port for your warehouse instance (if running locally with the provided compose template, it will be `http://localhost:5000`)
+
+- Enter the API key displayed when you ran the warehouse the very first time.
+![Forge Steel Warehouse settings](docs/images/connection_settings.png)
+
+- At this point, clicking 'Test Connection' should show 'Success!'. You can then save the settings and **refresh Forge Steel** to have it use the warehouse for data storage.
+
+#### Transferring data into the warehouse
+Right now, there is no automatic data migration from the old local Forge Steel storage to the Warehouse, so on loading Forge Steel while connected to the Warehouse, it will look like all of your data is gone! However, your local data is still there.
+
+To transfer data into the warehouse:
+- Turn off the forgesteel-warehouse connection in the settings.
+- Reload Forge Steel in your browser
+- Go to [the Forge Steel backup page](https://andyaiken.github.io/forgesteel/#/backup) and download everything you want to bring over to the warehouse.
+- Turn back on the forgesteel-warehouse data connection.
+- Reload Forge Steel in your browser
+- Import everything you exported above back into Forge Steel.
+- That data is now stored in your local warehouse!
 
 ## Development
 
@@ -97,9 +144,9 @@ git push origin tag vX.Y.Z
 
 ### Todos
 
-- [ ] Improve user guide
-- [ ] Docker compose?
-- [ ] Add container publish to CI
+- [x] Improve user guide
+- [x] Docker compose template (basic)
+- [x] Add container publish to CI
 - [ ] Automated dependency/version checking?
 - [ ] Integration/smoke tests
     - [ ] verify loading config
