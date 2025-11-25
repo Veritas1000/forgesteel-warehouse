@@ -1,25 +1,10 @@
 stages:
   - test
   - build
+  - publish
 
 variables:
   DOCKER_TLS_CERTDIR: "/certs"
-
-build container:
-  stage: build
-  image: docker:28.5.1-cli
-  services:
-    - docker:28.5.1-dind
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
-    - docker info
-    - export VERSION=$(sh generate_version.sh)
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
-    - 'echo "Using Container Registry: $CI_REGISTRY"'
-    - 'echo "Will build and push: $CONTAINER_TEST_IMAGE"'
-  script:
-    - docker build --pull -t $CONTAINER_TEST_IMAGE -f Containerfile .
-    - docker push $CONTAINER_TEST_IMAGE
 
 unit tests:
   stage: test
@@ -36,3 +21,60 @@ unit tests:
         coverage_format: cobertura
         path: coverage.xml
       junit: result.xml
+
+setup-dotenv:
+  stage: build
+  artifacts:
+    reports:
+      dotenv: build.env
+  script:
+    - export VERSION=$(sh generate_version.sh)
+    - echo "VERSION=${VERSION}" > build.env && source build.env
+
+build container:
+  stage: build
+  image: docker:28.5.1-cli
+  services:
+    - docker:28.5.1-dind
+  needs: 
+    - setup-dotenv
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker info
+    - export CONTAINER_LATEST="$CI_REGISTRY_IMAGE:latest"
+    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
+    - 'echo "Using Container Registry: $CI_REGISTRY"'
+    - 'echo "Will build and push: $CONTAINER_TEST_IMAGE"'
+  script:
+    - echo "$VERSION" > version.env
+    - docker build --pull -t $CONTAINER_LATEST -f Containerfile .
+    - docker tag $CONTAINER_LATEST "$CONTAINER_TEST_IMAGE"
+    - docker push $CONTAINER_TEST_IMAGE
+    - docker push $CONTAINER_LATEST
+
+publish container:
+  stage: publish
+  image: docker:28.5.1-cli
+  services:
+    - docker:28.5.1-dind
+  needs:
+    - setup-dotenv
+    - build container
+  rules:
+    ## Only tagged commits
+    - if: $CI_COMMIT_TAG =~ /^v?[0-9]+[.][0-9]+([.][0-9]+)?$/
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+    - docker info
+    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
+    - export PUBLIC_IMAGE="veritas1000/forgesteel-warehouse:$VERSION"
+    - export PUBLIC_LATEST="veritas1000/forgesteel-warehouse:latest"
+    - 'echo "Using Container Registry: $CI_REGISTRY"'
+    - 'echo "Will push: $PUBLIC_IMAGE"'
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $PUBLIC_LATEST
+    - docker tag $CONTAINER_TEST_IMAGE $PUBLIC_IMAGE
+    - docker push $PUBLIC_IMAGE
+    - docker push $PUBLIC_LATEST

@@ -8,3 +8,4 @@ bruno/
 coverage.xml
 .coverage
 result.xml
+compose.yaml
