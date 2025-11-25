@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required, current_user
 
 from forgesteel_warehouse import db
-from forgesteel_warehouse.models import FsHeroes, FsHomebrew
+from forgesteel_warehouse.models import FsHeroes, FsHomebrew, FsSession
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +15,8 @@ forgesteel_data = Blueprint('forgesteel_data', __name__)
 def get_data_types():
     return make_response(jsonify(keys=[
         'forgesteel-heroes',
-        'forgesteel-homebrew-settings'
+        'forgesteel-homebrew-settings',
+        'forgesteel-session',
         ]), 200)
 
 @forgesteel_data.get('/data/<key>')
@@ -27,6 +28,9 @@ def get_data(key):
             return make_response(jsonify(data=data), 200)
         case 'forgesteel-homebrew-settings':
             data = current_user.homebrew.data if current_user.homebrew is not None else None
+            return make_response(jsonify(data=data), 200)
+        case 'forgesteel-session':
+            data = current_user.session.data if current_user.session is not None else None
             return make_response(jsonify(data=data), 200)
         case _:
             return make_response(jsonify(message=f"Unknown data key: {key}"), 404)
@@ -50,6 +54,13 @@ def put_data(key):
                 db.session.add(homebrew)
             else:
                 homebrew.data = data
+        case 'forgesteel-session':
+            session = FsSession.query.filter_by(user=current_user).one_or_none()
+            if session is None:
+                session = FsSession(current_user, data)
+                db.session.add(session)
+            else:
+                session.data = data
         case _:
             return make_response(jsonify(message=f"Unknown data key: {key}"), 404)
     
