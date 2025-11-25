@@ -3,9 +3,7 @@ stages:
   - build
 
 variables:
-  # DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
-  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
 build container:
   stage: build
@@ -15,6 +13,8 @@ build container:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - docker info
+    - export VERSION=$(./generate_version.sh)
+    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
     - 'echo "Using Container Registry: $CI_REGISTRY"'
     - 'echo "Will build and push: $CONTAINER_TEST_IMAGE"'
   script:

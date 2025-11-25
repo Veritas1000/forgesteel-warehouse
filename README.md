@@ -87,9 +87,8 @@ docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehou
 - [x] CI setup
 - [x] Unit test and coverage reports in CI
 - [x] Publish to GitHub
-- [ ] Add actual forgesteel data storage
+- [x] Add actual forgesteel data storage
     - [x] heroes
-    - [ ] playbook
     - [x] homebrew-settings
     - [x] hidden-setting-ids
     - [x] session
