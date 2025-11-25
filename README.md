@@ -12,9 +12,9 @@ For wider access to your self-hosted forgesteel-warehouse instance, it is also a
 
 ### Prerequisites
 - `docker` installed and working
-    - `podman` should also work fine, just substitute the relevant command name. But if you're using podman, you almost certainly already know this, so why am I even still writing this?
-- *(Optional)* Reverse proxy with SSL setup and configured
-- *(Optional)* Routed and secured port access to where the container is running.
+    - `podman` should also work fine, just substitute the relevant command name. But if you're using podman, you almost certainly already know this, so why am I even still writing?
+- *(Optional but HIGHLY recommended)* Reverse proxy with SSL setup and configured
+- *(Optional - required for remote access)* Routed and secured port access to where the container is running.
 
 ### Initial setup and configuration
 Create a directory on the host machine where the forgesteel-warehouse data and configuration will live. For simplicity, this example will just use a local directory `/data/forgesteel`.
@@ -45,22 +45,12 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Update dependencies to latest:
-```bash
-python -m pip freeze > requirements.txt
-```
-
 Run the api backend in development mode:
 ```bash
 python dev_server.py
 ```
 
 ### Run tests
-Also install testing dependencies:
-```bash
-python -m pip install -r requirements-testing.txt
-```
-
 ```bash
 python -m pytest .
 ```
@@ -82,17 +72,35 @@ docker build -t fs-warehouse -f Containerfile .
 docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehouse:latest 
 ```
 
+## Release process
+
+- Update python dependencies
+```bash
+pip install --upgrade -r requirements.txt
+```
+- run tests, verify, etc
+- freeze deps
+```bash
+python -m pip freeze > requirements.txt
+```
+- update `__version__.py` with new version
+- commit
+- tag commit
+```bash
+git tag vX.Y.Z
+```
+- push tag
+```bash
+git push origin tag vX.Y.Z
+```
+- push commit
+
 ### Todos
 
-- [x] CI setup
-- [x] Unit test and coverage reports in CI
-- [x] Publish to GitHub
-- [x] Add actual forgesteel data storage
-    - [x] heroes
-    - [x] homebrew-settings
-    - [x] hidden-setting-ids
-    - [x] session
+- [ ] Improve user guide
+- [ ] Docker compose?
 - [ ] Add container publish to CI
+- [ ] Automated dependency/version checking?
 - [ ] Integration/smoke tests
     - [ ] verify loading config
     - [ ] bootstrap doesn't overwrite config values
