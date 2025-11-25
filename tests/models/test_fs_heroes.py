@@ -1,7 +1,7 @@
 from forgesteel_warehouse import db
 from forgesteel_warehouse.models import FsHeroes, User
 
-def test_basic_data_storage(test_user):
+def test_heroes_basic_data_storage(test_user):
     data = FsHeroes(test_user, [{"foo": "bar"}])
     db.session.add(data)
     db.session.commit()

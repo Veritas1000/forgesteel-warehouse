@@ -14,6 +14,7 @@ class User(db.Model):
     auth_key = db.mapped_column(db.String(80))
     
     heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
+    homebrew = db.relationship('FsHomebrew', uselist=False, back_populates='user')
 
     def __init__(self, name, auth_key=None):
         self.name = name
@@ -66,6 +67,19 @@ class FsHeroes(db.Model):
     id = db.mapped_column(db.Integer, primary_key=True)
     user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
     user = db.relationship('User', back_populates='heroes')
+
+    data = db.mapped_column(db.JSON)
+
+    def __init__(self, user, data):
+        self.user = user
+        self.data = data
+
+class FsHomebrew(db.Model):
+    __tablename__ = 'fs_homebrew'
+    
+    id = db.mapped_column(db.Integer, primary_key=True)
+    user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
+    user = db.relationship('User', back_populates='homebrew')
 
     data = db.mapped_column(db.JSON)
 
