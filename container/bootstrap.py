@@ -61,8 +61,7 @@ def print_key(key):
     """
     print(textwrap.dedent(banner))
 
-## Bootstrap the warehouse
-if __name__ == "__main__":
+def bootstrap():
     config = create_or_load_config()
     ## Initialize the DB
     app = init_app(config)
@@ -74,3 +73,7 @@ if __name__ == "__main__":
             ## If the user does not exist, create the default user
             user_key = add_default_user(app)
             print_key(user_key)
+
+## Bootstrap the warehouse
+if __name__ == "__main__":
+    bootstrap()

@@ -38,7 +38,6 @@ def put_data(key):
             else:
                 heroes.data = data
 
-            # current_user.heroes = heroes
             db.session.commit()
             db.session.refresh(current_user)
             return make_response(jsonify(), 204)
