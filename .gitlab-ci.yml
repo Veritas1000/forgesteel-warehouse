@@ -13,7 +13,7 @@ build container:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - docker info
-    - export VERSION=$(bash generate_version.sh)
+    - export VERSION=$(sh generate_version.sh)
     - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
     - 'echo "Using Container Registry: $CI_REGISTRY"'
     - 'echo "Will build and push: $CONTAINER_TEST_IMAGE"'
