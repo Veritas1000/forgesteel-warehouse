@@ -123,7 +123,11 @@ docker build -t fs-warehouse -f Containerfile .
 docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehouse:latest 
 ```
 
-## Release process
+### DB migrations
+
+
+
+### Dependency upgrade
 
 - Update python dependencies
 ```bash
@@ -134,6 +138,9 @@ pip install --upgrade -r requirements.txt
 ```bash
 python -m pip freeze > requirements.txt
 ```
+
+### Version bump
+
 - update `__version__.py` with new version
 - commit
 - tag commit
