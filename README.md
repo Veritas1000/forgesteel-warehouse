@@ -34,17 +34,21 @@ run --rm -it --name fs-warehouse -p 5000:5000 -v /data/forgesteel:/data veritas1
 The first time it starts up, it will initialize the database and generate an API key for you, displaying it in the session - **save it someplace secure**! This is how you will connect Forge Steel with your individual warehouse.
 
 ### Running with `docker compose`
-Create a copy of `compose-template.yaml` for your local instance:
-```bash
-cp compose-template.yaml compose.yaml
+You can also create a `compose.yaml` file to run forgesteel-warehouse, a basic compose file might look like this:
+```yaml
+---
+services:
+  fs-warehouse:
+    image: veritas1000/forgesteel-warehouse:latest
+    container_name: fs-warehouse
+    volumes:
+      - ./instance:/data
+    ports:
+      - 5000:5000
+    restart: unless-stopped
 ```
 
-Edit `compose.yaml`, changing the line under `volumes:`:
-```
-- /path/to/local/data/dir:/data
-```
-
-Change `/path/to/local/data/dir` to the local directory where you want the database and configuration stored (e.g. `/data/forgesteel`)
+This will run the service on port `5000`, with the data stored in the `instance` directory under the current dir (this happens to be the default dir that the dev server uses). If you don't change this volume mount, just make sure that `instance` directory exists.
 
 Then, start forgesteel-warehouse by running `docker compose up -d`
 
@@ -55,7 +59,7 @@ Then, start forgesteel-warehouse by running `docker compose up -d`
 
 - There, expand the 'Forge Steel Warehouse' section, and turn on `Connect with Forge Steel Warehouse'.
 
-- Enter the hostname and port for your warehouse instance (if running locally with the provided compose template, it will be `http://localhost:5000`)
+- Enter the hostname and port for your warehouse instance (if running locally with the dev server or example compose file above, it will be `http://localhost:5000`)
 
 - Enter the API key displayed when you ran the warehouse the very first time.
 ![Forge Steel Warehouse settings](docs/images/connection_settings.png)
