@@ -1,5 +1,6 @@
 import pytest
 
+from flask_migrate import upgrade
 from forgesteel_warehouse import init_app, db
 from forgesteel_warehouse.api_key import ApiKey
 from forgesteel_warehouse.models import User
@@ -13,7 +14,7 @@ def app():
     app = init_app(test_config)
     
     with app.app_context():
-        db.create_all()
+        upgrade()
         yield app
         db.session.remove()
         db.drop_all()
