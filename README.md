@@ -158,5 +158,7 @@ git push origin tag vX.Y.Z
 - [ ] pipeline cleanup job
 - [ ] Add TLS? Or assume proxy?
 - [ ] Add postgres storage support?
+- [ ] switch to Digest Auth for api keys?
 - [ ] Rotating/regenerating single-user key
 - [ ] Patreon OAuth integration
+- [ ] Custom-built ci runner image?
