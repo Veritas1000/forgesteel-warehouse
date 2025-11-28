@@ -123,7 +123,11 @@ docker build -t fs-warehouse -f Containerfile .
 docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehouse:latest 
 ```
 
-## Release process
+### DB migrations
+
+
+
+### Dependency upgrade
 
 - Update python dependencies
 ```bash
@@ -134,6 +138,9 @@ pip install --upgrade -r requirements.txt
 ```bash
 python -m pip freeze > requirements.txt
 ```
+
+### Version bump
+
 - update `__version__.py` with new version
 - commit
 - tag commit
@@ -151,6 +158,8 @@ git push origin tag vX.Y.Z
 - [x] Improve user guide
 - [x] Docker compose template (basic)
 - [x] Add container publish to CI
+- [ ] Rotating/regenerating single-user key
+- [ ] Add postgres storage support
 - [ ] Automated dependency/version checking?
 - [ ] Integration/smoke tests
     - [ ] verify loading config
@@ -161,4 +170,5 @@ git push origin tag vX.Y.Z
 - [ ] switch to Digest Auth for api keys?
 - [ ] Rotating/regenerating single-user key
 - [ ] Patreon OAuth integration
+- [ ] DB migration and versioning (Alembic via Flask-Migrate?)
 - [ ] Custom-built ci runner image?

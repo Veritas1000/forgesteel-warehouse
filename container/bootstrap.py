@@ -5,6 +5,7 @@ import textwrap
 import uuid
 
 from dotenv import load_dotenv
+from flask_migrate import upgrade
 from sqlalchemy import func
 
 from forgesteel_warehouse import db, init_app
@@ -38,7 +39,7 @@ def create_or_load_config():
 
 def add_default_user(app):
     with app.app_context():
-        db.create_all()
+        upgrade()
         key = uuid.uuid4().hex
         user = User(name='default_user', auth_key=key)
         db.session.add(user)
@@ -66,7 +67,7 @@ def bootstrap():
     ## Initialize the DB
     app = init_app(config)
     with app.app_context():
-        db.create_all()
+        upgrade()
         ## Check if any user exists
         default_user = db.session.execute(func.count(User.id)).scalar()
         if default_user == 0:

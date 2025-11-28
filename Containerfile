@@ -9,6 +9,7 @@ RUN pip install --upgrade pip && \
     pip install gunicorn
 
 COPY forgesteel_warehouse/ forgesteel_warehouse/
+COPY migrations/ migrations/
 
 COPY container/ .
 RUN chmod +x runWarehouse.sh
