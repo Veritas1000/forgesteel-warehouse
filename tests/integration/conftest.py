@@ -3,9 +3,8 @@ import pytest
 import re
 
 from testcontainers.generic import ServerContainer
-from testcontainers.core.container import DockerContainer
 from testcontainers.core.image import DockerImage
-from testcontainers.core.wait_strategies import HttpWaitStrategy, LogMessageWaitStrategy
+from testcontainers.core.wait_strategies import HttpWaitStrategy
 
 @pytest.fixture(scope='session')
 def app_image():
@@ -22,10 +21,9 @@ def app_container(app_image):
         with app_container:
             yield app_container
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session')
 def api_token(app_container):
-    stdout_bytes, stderr_bytes = app_container.get_logs()
-    log = stdout_bytes.decode() if stdout_bytes else ""
+    log = app_container.get_stdout()
     token = re.search(r"^\$1\$[0-9a-f]+$", log, re.MULTILINE)
 
     return token.group(0) if token is not None else None

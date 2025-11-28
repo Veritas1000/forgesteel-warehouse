@@ -124,8 +124,11 @@ docker run --rm -p 5000:5000 -v <local-dir>:/data --name fs-warehouse fs-warehou
 ```
 
 ### DB migrations
+Make the relevant Model changes, then:
 
-
+```bash
+flask --app 'forgesteel_warehouse:init_app()' db migrate -m "Some migration details"
+```
 
 ### Dependency upgrade
 
@@ -158,16 +161,14 @@ git push origin tag vX.Y.Z
 - [x] Docker compose template (basic)
 - [x] Add container publish to CI
 - [x] DB migration and versioning
+- [x] Add postgres storage support
+- [x] Integration/smoke tests
+    - [x] verify loading config
+    - [x] bootstrap doesn't overwrite config values
+    - [x] verify db upgrade path preserves data
 - [ ] Rotating/regenerating single-user key
-- [ ] Add postgres storage support
 - [ ] Automated dependency/version checking?
-- [ ] Integration/smoke tests
-    - [ ] verify loading config
-    - [ ] bootstrap doesn't overwrite config values
 - [ ] pipeline cleanup job
 - [ ] Add TLS? Or assume proxy?
-- [ ] Add postgres storage support?
-- [ ] switch to Digest Auth for api keys?
-- [ ] Rotating/regenerating single-user key
 - [ ] Patreon OAuth integration
 - [ ] Custom-built ci runner image?

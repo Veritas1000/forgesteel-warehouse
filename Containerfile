@@ -14,6 +14,7 @@ COPY migrations/ migrations/
 COPY container/ .
 RUN chmod +x runWarehouse.sh
 
+RUN mkdir /data
 VOLUME /data
 
 ENV DATABASE_URI=sqlite:////data/db.sqlite

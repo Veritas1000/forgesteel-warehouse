@@ -11,7 +11,7 @@ class User(db.Model):
 
     id = db.mapped_column(db.Integer, primary_key=True)
     name = db.mapped_column(db.String(100))
-    auth_key = db.mapped_column(db.String(80))
+    auth_key = db.mapped_column(db.String(120))
     
     heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
     homebrew = db.relationship('FsHomebrew', uselist=False, back_populates='user')
