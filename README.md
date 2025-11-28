@@ -155,9 +155,9 @@ git push origin tag vX.Y.Z
 
 ### Todos
 
-- [x] Improve user guide
 - [x] Docker compose template (basic)
 - [x] Add container publish to CI
+- [x] DB migration and versioning
 - [ ] Rotating/regenerating single-user key
 - [ ] Add postgres storage support
 - [ ] Automated dependency/version checking?
@@ -170,5 +170,4 @@ git push origin tag vX.Y.Z
 - [ ] switch to Digest Auth for api keys?
 - [ ] Rotating/regenerating single-user key
 - [ ] Patreon OAuth integration
-- [ ] DB migration and versioning (Alembic via Flask-Migrate?)
 - [ ] Custom-built ci runner image?
