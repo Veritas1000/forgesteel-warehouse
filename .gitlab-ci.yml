@@ -3,7 +3,32 @@ stages:
   - build
   - publish
 
+.common_before_script: &common_before_script
+  - apt-get update && apt-get upgrade -y && apt-get install -y locales ca-certificates curl
+  - locale-gen en_US.UTF-8
+  - export LANG="en_US.UTF-8"
+  - export LANGUAGE="en_US.UTF-8"
+  - export LC_ALL="en_US.UTF-8"
+  - locale
+  - apt-get install -y python3 python-is-python3 python3-pip python3-venv
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - |
+    tee /etc/apt/sources.list.d/docker.sources <<EOF
+    Types: deb
+    URIs: https://download.docker.com/linux/ubuntu
+    Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+    Components: stable
+    Signed-By: /etc/apt/keyrings/docker.asc
+    EOF
+  - apt-get update
+  - apt list -a docker-ce
+  - apt-get install -y docker-ce=5:28.5.1-1~ubuntu.24.04~noble docker-ce-cli=5:28.5.1-1~ubuntu.24.04~noble containerd.io docker-buildx-plugin docker-compose-plugin
+  - nohup dockerd >/dev/null 2>&1 &
+
 variables:
+  TZ: America/New_York
   DOCKER_TLS_CERTDIR: "/certs"
 
 unit tests:
@@ -11,16 +36,31 @@ unit tests:
   image: python:3.14-slim
   before_script:
     - pip install --no-cache-dir -r requirements.txt
-    - pip install --no-cache-dir -r requirements-testing.txt
   script:
-    - python -m pytest --cov --cov-report term --cov-report xml:coverage.xml --junitxml=result.xml
+    - python -m pytest tests/unit --cov --cov-report term --cov-report xml:coverage.xml --junitxml=unit_result.xml
   coverage: /TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
   artifacts:
     reports:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
-      junit: result.xml
+      junit: unit_result.xml
+
+integration tests:
+  stage: test
+  image: ubuntu:24.04
+  services:
+    - docker:28.5.1-dind
+  before_script:
+    - *common_before_script
+    - python -m venv ci
+    - source ci/bin/activate
+    - pip install --no-cache-dir -r requirements.txt
+  script:
+    - python -m pytest tests/integration --junitxml=int_result.xml
+  artifacts:
+    reports:
+      junit: int_result.xml
 
 setup-dotenv:
   stage: build
