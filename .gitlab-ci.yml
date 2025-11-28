@@ -3,7 +3,12 @@ stages:
   - build
   - publish
 
-.common_before_script: &common_before_script
+include:
+- template: Jobs/SAST.gitlab-ci.yml
+- template: Security/Secret-Detection.gitlab-ci.yml
+- template: Jobs/Dependency-Scanning.gitlab-ci.yml
+
+.docker_python_setup: &docker_python_setup
   - apt-get update && apt-get upgrade -y && apt-get install -y locales ca-certificates curl
   - locale-gen en_US.UTF-8
   - export LANG="en_US.UTF-8"
@@ -52,7 +57,7 @@ integration tests:
   services:
     - docker:28.5.1-dind
   before_script:
-    - *common_before_script
+    - *docker_python_setup
     - python -m venv ci
     - source ci/bin/activate
     - pip install --no-cache-dir -r requirements.txt
@@ -80,17 +85,18 @@ build container:
     - setup-dotenv
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
-    - docker info
-    - export CONTAINER_LATEST="$CI_REGISTRY_IMAGE:latest"
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
+    - export CONTAINER_IMAGE_LATEST="$CI_REGISTRY_IMAGE:latest"
+    - export CONTAINER_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
+    - export CONTAINER_IMAGE_REF="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
     - 'echo "Using Container Registry: $CI_REGISTRY"'
-    - 'echo "Will build and push: $CONTAINER_TEST_IMAGE"'
+    - 'echo "Will build and push: $CONTAINER_IMAGE"'
   script:
-    - echo "$VERSION" > version.env
-    - docker build --pull -t $CONTAINER_LATEST -f Containerfile .
-    - docker tag $CONTAINER_LATEST "$CONTAINER_TEST_IMAGE"
-    - docker push $CONTAINER_TEST_IMAGE
-    - docker push $CONTAINER_LATEST
+    - docker build --pull -t $CONTAINER_IMAGE_LATEST -f Containerfile .
+    - docker tag $CONTAINER_IMAGE_LATEST "$CONTAINER_IMAGE"
+    - docker tag $CONTAINER_IMAGE_LATEST "$CONTAINER_IMAGE_REF"
+    - docker push $CONTAINER_IMAGE
+    - docker push $CONTAINER_IMAGE_LATEST
+    - if [ "$CI_COMMIT_REF_SLUG" = "main" ]; then docker push $CONTAINER_IMAGE_REF; fi
 
 publish container:
   stage: publish
@@ -106,7 +112,6 @@ publish container:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USERNAME --password-stdin
-    - docker info
     - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
     - export PUBLIC_IMAGE="veritas1000/forgesteel-warehouse:$VERSION"
     - export PUBLIC_LATEST="veritas1000/forgesteel-warehouse:latest"
