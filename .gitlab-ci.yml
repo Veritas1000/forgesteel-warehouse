@@ -73,7 +73,6 @@ setup-buildenv:
     reports:
       dotenv: build.env
   script:
-    - docker system prune -f
     - export VERSION=$(sh generate_version.sh)
     - echo "VERSION=${VERSION}" > build.env && source build.env
 
@@ -85,6 +84,7 @@ build container:
   needs: 
     - setup-buildenv
   before_script:
+    - docker system prune -f
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - export CONTAINER_IMAGE_LATEST="$CI_REGISTRY_IMAGE:latest"
     - export CONTAINER_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
