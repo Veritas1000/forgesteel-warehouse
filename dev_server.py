@@ -1,5 +1,5 @@
 from forgesteel_warehouse import init_app
-from container.bootstrap import bootstrap
+from container.utils.bootstrap import bootstrap
 
 if __name__ == "__main__":
     bootstrap()

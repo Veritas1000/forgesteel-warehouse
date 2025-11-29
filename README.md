@@ -52,6 +52,34 @@ This will run the service on port `5000`, with the data stored in the `instance`
 
 Then, start forgesteel-warehouse by running `docker compose up -d`
 
+#### With external database (postgres)
+If you wanted to connect forgesteel-warehouse to an external database instead of using the built-in sqlite db, you could do something like this (use a `postgres:18` image as the db):
+
+```yaml
+---
+services:
+  fs-warehouse:
+    depends_on:
+      - db
+    image: veritas1000/forgesteel-warehouse:latest
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    ports:
+      - 5000:5000
+    environment:
+      DATABASE_URI: postgresql://fs-warehouse:Super-Secret-ChangeMe@db/fs-warehouse
+  db:
+    image: postgres:18
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: fs-warehouse
+      POSTGRES_PASSWORD: Super-Secret-ChangeMe
+    ports:
+      - 5432:5432
+```
+
 ### Connecting with Forge Steel
 *Note: This is currently in a closed beta, so you will need to enable the feature flag to see the connection settings for forgesteel-warehouse*
 
@@ -77,6 +105,10 @@ To transfer data into the warehouse:
 - Reload Forge Steel in your browser
 - Import everything you exported above back into Forge Steel.
 - That data is now stored in your local warehouse!
+
+### Additional users
+
+Running the self-hosted warehouse assumes a single, default user that is created on first start. If you want to have different users
 
 ## Development
 
@@ -158,17 +190,13 @@ git push origin tag vX.Y.Z
 
 ### Todos
 
-- [x] Docker compose template (basic)
-- [x] Add container publish to CI
-- [x] DB migration and versioning
 - [x] Add postgres storage support
 - [x] Integration/smoke tests
     - [x] verify loading config
     - [x] bootstrap doesn't overwrite config values
     - [x] verify db upgrade path preserves data
+- [x] Automated dependency/version checking in pipeline
 - [ ] Rotating/regenerating single-user key
-- [ ] Automated dependency/version checking?
+- [ ] Add TLS proxy example
 - [ ] pipeline cleanup job
-- [ ] Add TLS? Or assume proxy?
 - [ ] Patreon OAuth integration
-- [ ] Custom-built ci runner image?

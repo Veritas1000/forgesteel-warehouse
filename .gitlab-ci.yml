@@ -67,12 +67,13 @@ integration tests:
     reports:
       junit: int_result.xml
 
-setup-dotenv:
+setup-buildenv:
   stage: build
   artifacts:
     reports:
       dotenv: build.env
   script:
+    - docker system prune -f
     - export VERSION=$(sh generate_version.sh)
     - echo "VERSION=${VERSION}" > build.env && source build.env
 
@@ -82,7 +83,7 @@ build container:
   services:
     - docker:28.5.1-dind
   needs: 
-    - setup-dotenv
+    - setup-buildenv
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - export CONTAINER_IMAGE_LATEST="$CI_REGISTRY_IMAGE:latest"
@@ -105,7 +106,7 @@ publish container:
   services:
     - docker:28.5.1-dind
   needs:
-    - setup-dotenv
+    - setup-buildenv
     - build container
   rules:
     ## Only tagged commits
@@ -113,14 +114,14 @@ publish container:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USERNAME --password-stdin
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
+    - export INTERNAL_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
     - export PUBLIC_IMAGE="veritas1000/forgesteel-warehouse:$VERSION"
     - export PUBLIC_LATEST="veritas1000/forgesteel-warehouse:latest"
     - 'echo "Using Container Registry: $CI_REGISTRY"'
     - 'echo "Will push: $PUBLIC_IMAGE"'
   script:
-    - docker pull $CONTAINER_TEST_IMAGE
-    - docker tag $CONTAINER_TEST_IMAGE $PUBLIC_LATEST
-    - docker tag $CONTAINER_TEST_IMAGE $PUBLIC_IMAGE
+    - docker pull $INTERNAL_IMAGE
+    - docker tag $INTERNAL_IMAGE $PUBLIC_LATEST
+    - docker tag $INTERNAL_IMAGE $PUBLIC_IMAGE
     - docker push $PUBLIC_IMAGE
     - docker push $PUBLIC_LATEST

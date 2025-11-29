@@ -11,6 +11,8 @@ RUN pip install --upgrade pip && \
 COPY forgesteel_warehouse/ forgesteel_warehouse/
 COPY migrations/ migrations/
 
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+
 COPY container/ .
 RUN chmod +x runWarehouse.sh
 
