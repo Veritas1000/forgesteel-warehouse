@@ -91,6 +91,7 @@ build container:
     - 'echo "Using Container Registry: $CI_REGISTRY"'
     - 'echo "Will build and push: $CONTAINER_IMAGE"'
   script:
+    - ./generate_version.sh 
     - docker build --pull -t $CONTAINER_IMAGE_LATEST -f Containerfile .
     - docker tag $CONTAINER_IMAGE_LATEST "$CONTAINER_IMAGE"
     - docker tag $CONTAINER_IMAGE_LATEST "$CONTAINER_IMAGE_REF"
