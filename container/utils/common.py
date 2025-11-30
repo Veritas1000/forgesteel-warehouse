@@ -3,12 +3,9 @@ import os
 import secrets
 import textwrap
 import uuid
-
 from dotenv import load_dotenv
-from flask_migrate import upgrade
-from sqlalchemy import func
 
-from forgesteel_warehouse import db, init_app
+from forgesteel_warehouse import db
 from forgesteel_warehouse.api_key import ApiKey
 from forgesteel_warehouse.models import User
 
@@ -37,11 +34,10 @@ def create_or_load_config():
 
     return config
 
-def add_default_user(app):
+def create_user(app, user_name):
     with app.app_context():
-        upgrade()
         key = uuid.uuid4().hex
-        user = User(name='default_user', auth_key=key)
+        user = User(name=user_name, auth_key=key)
         db.session.add(user)
         db.session.commit()
         uid = user.id
@@ -61,20 +57,3 @@ def print_key(key):
     {'*'*40}
     """
     print(textwrap.dedent(banner))
-
-def bootstrap():
-    config = create_or_load_config()
-    ## Initialize the DB
-    app = init_app(config)
-    with app.app_context():
-        upgrade()
-        ## Check if any user exists
-        default_user = db.session.execute(func.count(User.id)).scalar()
-        if default_user == 0:
-            ## If the user does not exist, create the default user
-            user_key = add_default_user(app)
-            print_key(user_key)
-
-## Bootstrap the warehouse
-if __name__ == "__main__":
-    bootstrap()

@@ -67,7 +67,7 @@ integration tests:
     reports:
       junit: int_result.xml
 
-setup-dotenv:
+setup-buildenv:
   stage: build
   artifacts:
     reports:
@@ -82,8 +82,9 @@ build container:
   services:
     - docker:28.5.1-dind
   needs: 
-    - setup-dotenv
+    - setup-buildenv
   before_script:
+    - docker system prune -f
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - export CONTAINER_IMAGE_LATEST="$CI_REGISTRY_IMAGE:latest"
     - export CONTAINER_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
@@ -91,6 +92,7 @@ build container:
     - 'echo "Using Container Registry: $CI_REGISTRY"'
     - 'echo "Will build and push: $CONTAINER_IMAGE"'
   script:
+    - sh generate_version.sh
     - docker build --pull -t $CONTAINER_IMAGE_LATEST -f Containerfile .
     - docker tag $CONTAINER_IMAGE_LATEST "$CONTAINER_IMAGE"
     - docker tag $CONTAINER_IMAGE_LATEST "$CONTAINER_IMAGE_REF"
@@ -104,7 +106,7 @@ publish container:
   services:
     - docker:28.5.1-dind
   needs:
-    - setup-dotenv
+    - setup-buildenv
     - build container
   rules:
     ## Only tagged commits
@@ -112,14 +114,14 @@ publish container:
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u $DOCKER_HUB_USERNAME --password-stdin
-    - export CONTAINER_TEST_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
+    - export INTERNAL_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
     - export PUBLIC_IMAGE="veritas1000/forgesteel-warehouse:$VERSION"
     - export PUBLIC_LATEST="veritas1000/forgesteel-warehouse:latest"
     - 'echo "Using Container Registry: $CI_REGISTRY"'
     - 'echo "Will push: $PUBLIC_IMAGE"'
   script:
-    - docker pull $CONTAINER_TEST_IMAGE
-    - docker tag $CONTAINER_TEST_IMAGE $PUBLIC_LATEST
-    - docker tag $CONTAINER_TEST_IMAGE $PUBLIC_IMAGE
+    - docker pull $INTERNAL_IMAGE
+    - docker tag $INTERNAL_IMAGE $PUBLIC_LATEST
+    - docker tag $INTERNAL_IMAGE $PUBLIC_IMAGE
     - docker push $PUBLIC_IMAGE
     - docker push $PUBLIC_LATEST
