@@ -11,7 +11,7 @@ class User(db.Model):
 
     id = db.mapped_column(db.Integer, primary_key=True)
     name = db.mapped_column(db.String(100))
-    auth_key = db.mapped_column(db.String(120))
+    _auth_key = db.mapped_column('auth_key', db.String(120))
     
     heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
     homebrew = db.relationship('FsHomebrew', uselist=False, back_populates='user')
@@ -20,23 +20,23 @@ class User(db.Model):
 
     def __init__(self, name, auth_key=None):
         self.name = name
-        self.auth_key = None
+        self._auth_key = None
         if auth_key is not None:
-            ph = PasswordHasher()
-            hashed = ph.hash(auth_key)
-            self.auth_key = hashed
+            self.set_auth_key(auth_key)
 
-    def get_api_token(self):
-        if self.auth_key is not None:
-            return ApiKey.makeApiKey(self.id, self.auth_key)
-        else:
-            return None
+    def set_auth_key(self, auth_key):
+        ph = PasswordHasher()
+        hashed = ph.hash(auth_key)
+        self._auth_key = hashed
 
     def check_auth_key(self, auth_key):
-        if self.auth_key is None:
+        if self._auth_key is None:
             return False
         ph = PasswordHasher()
-        return ph.verify(self.auth_key, auth_key)
+        try:
+            return ph.verify(self._auth_key, auth_key)
+        except:
+            return False
 
     @classmethod
     def find_by_api_token(cls, api_token):
@@ -49,7 +49,7 @@ class User(db.Model):
         return None
 
     def __str__(self):
-        return f"[User {self.id} name={self.name} auth_key={self.auth_key}]"
+        return f"[User {self.id} name={self.name} auth_key={self._auth_key}]"
 
     def __repr__(self):
         return self.__str__()

@@ -108,7 +108,34 @@ To transfer data into the warehouse:
 
 ### Additional users
 
-Running the self-hosted warehouse assumes a single, default user that is created on first start. If you want to have different users
+Running the self-hosted warehouse assumes a single, default user that is created on first start. If you want to add additional users, run the following docker command (replace `fs-warehouse-ct` with the name of your particular running container)
+
+```bash
+docker exec -it fs-warehouse-ct python /app/utils/add_user.py
+```
+
+The script will add a new user and output the API key for that user, the same way it does for the initial user:
+
+```
+****************************************
+USER CREATED
+Here is your API KEY for connecting with Forge Steel
+Save it somewhere safe - IT WON'T BE DISPLAYED AGAIN!
+
+$2$123abcd...aaa
+
+****************************************
+```
+
+### Regenerating API keys for users
+
+If for some reason you need to generate a new API key for a user, you can use the `cycle_key.py` helper script. To cycle the key of the default user, run:
+
+```bash
+docker exec -it fs-warehouse-ct python /app/utils/cycle_key.py
+```
+
+The script will output the new api key to the console.
 
 ## Development
 
@@ -198,5 +225,4 @@ git push origin tag vX.Y.Z
 - [x] Automated dependency/version checking in pipeline
 - [ ] Rotating/regenerating single-user key
 - [ ] Add TLS proxy example
-- [ ] pipeline cleanup job
 - [ ] Patreon OAuth integration
