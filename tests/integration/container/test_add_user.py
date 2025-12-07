@@ -2,7 +2,7 @@ import re
 
 import requests
 
-from tests.integration.utils import get_auth_headers, get_auth_token
+from tests.integration.utils import get_auth_headers, get_csrf_token
 
 def test_add_user_script(app_container):
     exit_code, output = app_container.exec('python utils/add_user.py')
@@ -35,7 +35,7 @@ def test_user_data_separation(app_container):
     assert new_token is not None
 
     ## Verify the new user has no data
-    access_token2 = get_auth_token(app_container, new_token)
+    access_token2 = get_csrf_token(app_container, new_token)
     headers2 = {'Authorization': f"Bearer {access_token2}"}
     get_req = requests.get(f"{url}/data/forgesteel-homebrew-settings", headers=headers2)
     assert get_req.status_code == 200

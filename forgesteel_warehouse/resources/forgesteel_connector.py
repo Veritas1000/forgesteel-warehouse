@@ -1,7 +1,7 @@
 import logging
 
-from flask import Blueprint, jsonify, request, make_response
-from flask_jwt_extended import create_access_token, jwt_required, current_user
+from flask import Blueprint, jsonify, redirect, request, make_response
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, current_user, set_access_cookies, set_refresh_cookies
 
 from forgesteel_warehouse.models import User
 
@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 forgesteel_connector = Blueprint('forgesteel_connector', __name__)
 
-@forgesteel_connector.route('/connect')
+@forgesteel_connector.post('/connect')
 def connect():
     auth = request.authorization
     if auth and auth.token:
@@ -17,7 +17,12 @@ def connect():
             user = User.find_by_api_token(auth.token)
             if user:
                 access_token = create_access_token(identity=user)
-                return jsonify(access_token=access_token) 
+                refresh_token = create_refresh_token(identity=user)
+                resp = make_response({}, 204)
+                set_access_cookies(resp, access_token)
+                set_refresh_cookies(resp, refresh_token)
+        
+                return resp
         except:
             pass
         return make_response(jsonify(message='Invalid token'), 401, {'WWW-Authenticate': 'Bearer realm="Authorization required"'})

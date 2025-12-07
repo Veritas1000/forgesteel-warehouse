@@ -220,5 +220,8 @@ git push origin tag vX.Y.Z
 - [x] Rotating/regenerating single-user key
 - [x] Patreon OAuth integration
 - [x] proper logging
-- [ ] code linting?
 - [ ] Rework API key auth
+- [ ] code linting?
+- [ ] Add overview/instructions html page to root
+- [ ] Add ability to bypass bootstrap
+- [ ] Add ability to pull secrets from env

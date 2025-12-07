@@ -1,16 +1,18 @@
 import re
 import requests
 
+from tests.utils import get_csrf_access_token_from_response
+
 
 def test_cycle_user_key(app_container, api_token):
     ## Verify initial connectivity
     url = app_container._create_connection_url()
     connect_headers = {'Authorization': f"Bearer {api_token}"}
     cr = requests.get(f"{url}/connect", headers=connect_headers)
-    access_token = cr.json()['access_token']
     
-    assert cr.status_code == 200
-    assert access_token is not None
+    token = get_csrf_access_token_from_response(cr)
+    assert cr.status_code == 204
+    assert token is not None
 
     ## generate a new key
     exit_code, output = app_container.exec('python /app/utils/cycle_key.py')

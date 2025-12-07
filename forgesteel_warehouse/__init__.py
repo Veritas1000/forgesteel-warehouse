@@ -36,7 +36,13 @@ def init_app(app_config=None):
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
     
-    app.config['JWT_TOKEN_LOCATION'] = ['headers']
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = True
+    app.config['JWT_CSRF_METHODS'] = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    ## TODO: Enable these once possible
+    # app.config['JWT_COOKIE_SAMESITE'] = 'None'
+    # app.config['JWT_COOKIE_SECURE'] = True
 
     app.config['LOG_LEVEL'] = os.getenv('LOG_LEVEL', 'ERROR')
 

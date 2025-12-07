@@ -3,10 +3,9 @@ import logging
 import os
 from unittest import mock
 
-from flask_migrate import upgrade
 import pytest
 
-from forgesteel_warehouse import init_app, db
+from forgesteel_warehouse import init_app
 
 @pytest.fixture(scope='function')
 def mock_log_level_env(monkeypatch):
