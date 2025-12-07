@@ -1,14 +1,14 @@
 import re
 import requests
 
-from tests.utils import get_csrf_access_token_from_response
+from tests.integration.utils import get_csrf_access_token_from_response
 
 
 def test_cycle_user_key(app_container, api_token):
     ## Verify initial connectivity
     url = app_container._create_connection_url()
     connect_headers = {'Authorization': f"Bearer {api_token}"}
-    cr = requests.get(f"{url}/connect", headers=connect_headers)
+    cr = requests.post(f"{url}/connect", headers=connect_headers)
     
     token = get_csrf_access_token_from_response(cr)
     assert cr.status_code == 204
@@ -25,14 +25,14 @@ def test_cycle_user_key(app_container, api_token):
     assert new_token[0:3] == api_token[0:3]
 
     ## Verify old token no longer works
-    cr = requests.get(f"{url}/connect", headers=connect_headers)
+    cr = requests.post(f"{url}/connect", headers=connect_headers)
 
     assert cr.status_code == 401
 
     ## verify new token
     new_connect_headers = {'Authorization': f"Bearer {new_token}"}
-    cr = requests.get(f"{url}/connect", headers=new_connect_headers)
-    access_token = cr.json()['access_token']
+    cr = requests.post(f"{url}/connect", headers=new_connect_headers)
     
-    assert cr.status_code == 200
-    assert access_token is not None
+    token = get_csrf_access_token_from_response(cr)
+    assert cr.status_code == 204
+    assert token is not None
