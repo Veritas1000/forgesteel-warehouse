@@ -24,19 +24,6 @@ def init_app(app_config=None):
 
     app = Flask(__name__, instance_relative_config=False)
 
-    ## Logging setup
-    root = logging.getLogger('forgesteel_warehouse')
-    # root.setLevel(logging.WARNING)
-    root.setLevel(logging.INFO)
-
-    handler = logging.StreamHandler(sys.stdout)
-    # handler.setLevel(logging.WARNING)
-    handler.setLevel(logging.INFO)
-
-    formatter = logging.Formatter('%(levelname)s: %(message)s')
-    handler.setFormatter(formatter)
-    root.addHandler(handler)
-
     ## Get database URI from environment variables or use default
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI', 'sqlite:///:memory:')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -51,6 +38,8 @@ def init_app(app_config=None):
     
     app.config['JWT_TOKEN_LOCATION'] = ['headers']
 
+    app.config['LOG_LEVEL'] = os.getenv('LOG_LEVEL', 'ERROR')
+
     ## If no passed in config, but a config path is set, load config
     config_path = os.getenv('FSW_CONFIG_PATH')
     if app_config is None and config_path is not None:
@@ -64,19 +53,42 @@ def init_app(app_config=None):
     if app_config:
         app.config.update(app_config)
 
+    ## Logging setup
+    level = logging.NOTSET
+    match app.config['LOG_LEVEL']:
+        case 'DEBUG':
+            level = logging.DEBUG
+        case 'INFO':
+            level = logging.INFO
+        case 'WARNING':
+            level = logging.WARNING
+        case 'Error' | _:
+            level = logging.ERROR
+
+    root = logging.getLogger('forgesteel_warehouse')
+    root.setLevel(level)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(level)
+
+    formatter = logging.Formatter('%(levelname)s: %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
+
     ## Initialize extensions with app
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    CORS(app)
+    CORS(app, supports_credentials=True)
 
     with app.app_context():
 
         from .resources.healthz import healthz
         app.register_blueprint(healthz)
         
-        from .resources.patreon_oauth import patreon_oauth
-        app.register_blueprint(patreon_oauth)
+        from .resources.token_handler import token_handler
+        app.register_blueprint(token_handler)
 
         from .resources.forgesteel_connector import forgesteel_connector
         app.register_blueprint(forgesteel_connector)

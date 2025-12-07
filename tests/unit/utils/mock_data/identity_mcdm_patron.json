@@ -1,0 +1,34 @@
+{
+  "data": {
+    "id": "123456",
+    "type": "user",
+    "attributes": {
+      "email": "test@email.com"
+    },
+    "relationships": {
+      "memberships": {
+        "data": [
+          {
+            "id": "abcd-88c1-4bdf-b7b5-1234",
+            "type": "member"
+          }
+        ]
+      }
+    }
+  },
+  "included": [
+    {
+      "id": "abcd-88c1-4bdf-b7b5-1234",
+      "type": "member",
+      "attributes": {
+        "patron_status": "active_patron",
+        "pledge_relationship_start": "2019-02-13T13:40:31.533+00:00",
+        "currently_entitled_amount_cents": 800,
+        "last_charge_status": "Paid"
+      }
+    }
+  ],
+  "links": {
+    "self": "https://www.patreon.com/api/oauth2/v2/user/123456"
+  }
+}
