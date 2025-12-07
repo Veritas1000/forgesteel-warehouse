@@ -205,7 +205,7 @@ python -m pip freeze > requirements.txt
 
 - update `__version__.py` with new version
 - commit
-- tag commit
+- tag commit (in gitlab - or manually as below)
 ```bash
 git tag vX.Y.Z
 ```
@@ -217,12 +217,8 @@ git push origin tag vX.Y.Z
 
 ### Todos
 
-- [x] Add postgres storage support
-- [x] Integration/smoke tests
-    - [x] verify loading config
-    - [x] bootstrap doesn't overwrite config values
-    - [x] verify db upgrade path preserves data
-- [x] Automated dependency/version checking in pipeline
-- [ ] Rotating/regenerating single-user key
-- [ ] Add TLS proxy example
-- [ ] Patreon OAuth integration
+- [x] Rotating/regenerating single-user key
+- [x] Patreon OAuth integration
+- [x] proper logging
+- [ ] code linting?
+- [ ] Rework API key auth

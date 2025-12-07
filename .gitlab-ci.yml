@@ -3,12 +3,24 @@ stages:
   - build
   - publish
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+variables:
+  TZ: America/New_York
+  DOCKER_TLS_CERTDIR: "/certs"
+  AST_ENABLE_MR_PIPELINES: true
+
 include:
 - template: Jobs/SAST.gitlab-ci.yml
 - template: Security/Secret-Detection.gitlab-ci.yml
 - template: Jobs/Dependency-Scanning.gitlab-ci.yml
 
-.docker_python_setup: &docker_python_setup
+.python_setup: &python_setup
   - apt-get update && apt-get upgrade -y && apt-get install -y locales ca-certificates curl
   - locale-gen en_US.UTF-8
   - export LANG="en_US.UTF-8"
@@ -16,6 +28,8 @@ include:
   - export LC_ALL="en_US.UTF-8"
   - locale
   - apt-get install -y python3 python-is-python3 python3-pip python3-venv
+
+.docker_setup: &docker_setup
   - install -m 0755 -d /etc/apt/keyrings
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
   - chmod a+r /etc/apt/keyrings/docker.asc
@@ -32,11 +46,7 @@ include:
   - apt-get install -y docker-ce=5:28.5.1-1~ubuntu.24.04~noble docker-ce-cli=5:28.5.1-1~ubuntu.24.04~noble containerd.io docker-buildx-plugin docker-compose-plugin
   - nohup dockerd >/dev/null 2>&1 &
 
-variables:
-  TZ: America/New_York
-  DOCKER_TLS_CERTDIR: "/certs"
-
-unit tests:
+unit-tests:
   stage: test
   image: python:3.14-slim
   before_script:
@@ -51,13 +61,14 @@ unit tests:
         path: coverage.xml
       junit: unit_result.xml
 
-integration tests:
+integration-tests:
   stage: test
   image: ubuntu:24.04
   services:
     - docker:28.5.1-dind
   before_script:
-    - *docker_python_setup
+    - *python_setup
+    - *docker_setup
     - python -m venv ci
     - source ci/bin/activate
     - pip install --no-cache-dir -r requirements.txt
@@ -67,6 +78,30 @@ integration tests:
     reports:
       junit: int_result.xml
 
+scan-reporting:
+  stage: test
+  needs:
+    - semgrep-sast
+  image: ubuntu:24.04
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+  before_script:
+    - *python_setup
+    - apt-get install -y python3-jinja2
+  script:
+    - python pipeline/sast_report.py > comment.json
+    - echo "Sending to $CI_SERVER_URL/api/v4/projects/$CI_MERGE_REQUEST_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+    - |
+      curl --location \
+      --request POST \
+      "$CI_SERVER_URL/api/v4/projects/$CI_MERGE_REQUEST_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes" \
+      --header "PRIVATE-TOKEN: $SCANNER_ACCESS_TOKEN" \
+      --header "Content-Type: application/json" \
+      --data @comment.json
+  
 setup-buildenv:
   stage: build
   artifacts:
@@ -76,7 +111,7 @@ setup-buildenv:
     - export VERSION=$(sh generate_version.sh)
     - echo "VERSION=${VERSION}" > build.env && source build.env
 
-build container:
+build-container:
   stage: build
   image: docker:28.5.1-cli
   services:
@@ -100,14 +135,14 @@ build container:
     - docker push $CONTAINER_IMAGE_LATEST
     - if [ "$CI_COMMIT_REF_SLUG" = "main" ]; then docker push $CONTAINER_IMAGE_REF; fi
 
-publish container:
+publish-container:
   stage: publish
   image: docker:28.5.1-cli
   services:
     - docker:28.5.1-dind
   needs:
     - setup-buildenv
-    - build container
+    - build-container
   rules:
     ## Only tagged commits
     - if: $CI_COMMIT_TAG =~ /^v?[0-9]+[.][0-9]+([.][0-9]+)?$/

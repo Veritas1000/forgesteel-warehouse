@@ -1,7 +1,7 @@
 import sys
 import uuid
 
-from common import create_or_load_config, print_key
+from forgesteel_warehouse.utils.app_utils import create_or_load_config, print_key
 from forgesteel_warehouse import db, init_app
 from forgesteel_warehouse.api_key import ApiKey
 from forgesteel_warehouse.models import User
