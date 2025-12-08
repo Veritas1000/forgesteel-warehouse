@@ -21,15 +21,10 @@ log = logging.getLogger(__name__)
 
 class PatreonApi:
     _requested_token_scopes = [
-        'identity',
-        'identity[email]',
-        'identity.memberships',
-        'campaigns'
+        'identity.memberships'
     ]
 
     _identity_includes = [
-        'memberships',
-        'campaign',
         'memberships.campaign'
     ]
     _member_fields = [
@@ -133,17 +128,22 @@ class PatreonApi:
     def _parse_identity_response(self, identity_json):
         mcdm_state = PatronState(patron=False, tier_cents=0, start=None)
 
-        # Find the mcdm campaign
-        try:
-            memberships = list(filter(lambda inc: inc['type'] == 'member' and inc['id'] == self.MCDM_CAMPAIGN_ID, identity_json['included']))
+        ## find the MCDM campaign
+        if identity_json is not None and 'included' in identity_json:
+            memberships = list(filter(lambda inc: inc['type'] == 'member'
+                                        and 'relationships' in inc
+                                        and 'campaign' in inc['relationships']
+                                        and 'data' in inc['relationships']['campaign']
+                                        and 'id' in inc['relationships']['campaign']['data']
+                                        and inc['relationships']['campaign']['data']['id'] == self.MCDM_CAMPAIGN_ID,
+                                        identity_json['included'])
+                                    )
             if len(memberships) > 0:
                 membership = memberships[0]
                 mcdm_state.patron = membership['attributes']['patron_status'] == 'active_patron'
                 if mcdm_state.patron:
                     mcdm_state.tier_cents = membership['attributes']['currently_entitled_amount_cents']
                     mcdm_state.start = datetime.fromisoformat(membership['attributes']['pledge_relationship_start']).date()
-        except:
-            pass
 
         return PatreonUser(mcdm=mcdm_state)
 

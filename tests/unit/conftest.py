@@ -55,7 +55,7 @@ def mock_env_vars(monkeypatch):
             'PATREON_CLIENT_ID': 'FAKE_PATREON_CLIENT_ID',
             'PATREON_CLIENT_SECRET': 'FAKE_PATREON_CLIENT_SECRET',
             'PATREON_OAUTH_REDIRECT_URI': 'http://some.fake/oauth-redirect',
-            'PATREON_CAMPAIGN_ID_MCDM': 'abcd-88c1-4bdf-b7b5-1234',
+            'PATREON_CAMPAIGN_ID_MCDM': '42424242',
         }
         for k, v in envvars.items():
             monkeypatch.setenv(k, v)
