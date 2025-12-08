@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 from flask import Blueprint, Response, jsonify, make_response, request
@@ -5,6 +6,8 @@ from flask import Blueprint, Response, jsonify, make_response, request
 from forgesteel_warehouse.utils.patreon_api import PatreonApi
 
 token_handler = Blueprint('token_handler', __name__)
+
+log = logging.getLogger(__name__)
 
 TEMP_LOGIN_COOKIE_NAME = 'fs-th-login-temp'
 TOKEN_COOKIE_NAME = 'fs-th-token'
@@ -81,6 +84,8 @@ def login_end():
     temp_cookie = request.cookies.get(TEMP_LOGIN_COOKIE_NAME)
 
     if (temp_cookie != state):
+        msg = 'Missing login state cookie' if temp_cookie is None else 'Incorrect login state cookie'
+        log.warning(msg)
         return make_response(jsonify({'message': 'Invalid Authorization request'}), 400)
 
     redirect_url = os.getenv('PATREON_OAUTH_REDIRECT_URI')

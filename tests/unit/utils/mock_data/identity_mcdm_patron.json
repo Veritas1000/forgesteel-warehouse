@@ -25,10 +25,28 @@
         "pledge_relationship_start": "2019-02-13T13:40:31.533+00:00",
         "currently_entitled_amount_cents": 800,
         "last_charge_status": "Paid"
+      },
+      "relationships": {
+        "campaign": {
+          "data": {
+            "id": "42424242",
+            "type": "campaign"
+          },
+          "links": {
+            "related": "https://fake.patreon.com/api/oauth2/v2/campaigns/42424242"
+          }
+        }
+      }
+    },
+    {
+      "id": "42424242",
+      "type": "campaign",
+      "attributes": {
+        "url": "https://fake.patreon.com/mcdm"
       }
     }
   ],
   "links": {
-    "self": "https://www.patreon.com/api/oauth2/v2/user/123456"
+    "self": "https://fake.patreon.com/api/oauth2/v2/user/123456"
   }
 }
