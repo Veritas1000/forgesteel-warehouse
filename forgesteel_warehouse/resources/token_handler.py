@@ -44,7 +44,7 @@ def login_start():
     
     resp = make_response(jsonify({'authorizationUrl': url}))
     ## TODO: add 'secure=True' once https is standard
-    resp.set_cookie(TEMP_LOGIN_COOKIE_NAME, state, max_age=600, httponly=True)
+    resp.set_cookie(TEMP_LOGIN_COOKIE_NAME, state, max_age=600, httponly=True, samesite='None', secure=True, partitioned=True)
 
     return resp
 
@@ -78,8 +78,8 @@ def login_end():
         }))
             
         ## TODO: add 'secure=True' once https is standard
-        resp.set_cookie(TOKEN_COOKIE_NAME, access_token, max_age=lifetime, httponly=True)
-        resp.set_cookie(TOKEN_REFRESH_COOKIE_NAME, refresh_token, max_age=lifetime, httponly=True)
+        resp.set_cookie(TOKEN_COOKIE_NAME, access_token, max_age=lifetime, httponly=True, samesite='None', secure=True, partitioned=True)
+        resp.set_cookie(TOKEN_REFRESH_COOKIE_NAME, refresh_token, max_age=lifetime, httponly=True, samesite='None', secure=True, partitioned=True)
         resp.set_cookie(TEMP_LOGIN_COOKIE_NAME, '', httponly=True, expires=0)
         return resp
     except Exception as err:
