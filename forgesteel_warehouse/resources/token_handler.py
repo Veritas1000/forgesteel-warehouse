@@ -1,6 +1,6 @@
 import os
 import uuid
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, Response, jsonify, make_response, request
 
 from forgesteel_warehouse.utils.patreon_api import PatreonApi
 
@@ -29,6 +29,23 @@ def get_session():
         'user': user_data
     })
 
+def set_th_cookie(resp: Response, name: str, value: str, max_age: int):
+    ## TODO: enable samesite once co-hosted with app
+    if max_age > 0:
+        resp.set_cookie(name, value,
+                        max_age=max_age,
+                        httponly=True,
+                        samesite='None',
+                        secure=True,
+                        partitioned=True)
+    else:
+        resp.set_cookie(name, value,
+                        expires=0,
+                        httponly=True,
+                        samesite='None',
+                        secure=True,
+                        partitioned=True)
+
 ## Start the login process
 ## Returns the OAuth login url
 ##  also sets a temporary HTTP-only cookie containing state
@@ -43,8 +60,9 @@ def login_start():
     url = patreon_api.generate_authorize_url(redirect_url, state)
     
     resp = make_response(jsonify({'authorizationUrl': url}))
-    ## TODO: add 'secure=True' once https is standard
-    resp.set_cookie(TEMP_LOGIN_COOKIE_NAME, state, max_age=600, httponly=True, samesite='None', secure=True, partitioned=True)
+    
+    set_th_cookie(resp, TEMP_LOGIN_COOKIE_NAME, state, 600)
+    # resp.set_cookie(TEMP_LOGIN_COOKIE_NAME, state, max_age=600, httponly=True, samesite='None', secure=True, partitioned=True)
 
     return resp
 
@@ -76,11 +94,11 @@ def login_end():
             'authenticated_with_patreon': True,
             'user': user_data
         }))
-            
-        ## TODO: add 'secure=True' once https is standard
-        resp.set_cookie(TOKEN_COOKIE_NAME, access_token, max_age=lifetime, httponly=True, samesite='None', secure=True, partitioned=True)
-        resp.set_cookie(TOKEN_REFRESH_COOKIE_NAME, refresh_token, max_age=lifetime, httponly=True, samesite='None', secure=True, partitioned=True)
-        resp.set_cookie(TEMP_LOGIN_COOKIE_NAME, '', httponly=True, expires=0)
+
+        set_th_cookie(resp, TOKEN_COOKIE_NAME, access_token, lifetime)
+        set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, refresh_token, lifetime)
+        set_th_cookie(resp, TEMP_LOGIN_COOKIE_NAME, '', 0)
+
         return resp
     except Exception as err:
         body = {
@@ -99,9 +117,8 @@ def refresh():
     access_token, refresh_token, lifetime = patreon_api.refresh_token(refresh_token)
     
     resp = make_response(jsonify(), 204)
-    ## TODO: add 'secure=True' once https is standard
-    resp.set_cookie(TOKEN_COOKIE_NAME, access_token, max_age=lifetime, httponly=True)
-    resp.set_cookie(TOKEN_REFRESH_COOKIE_NAME, refresh_token, max_age=lifetime, httponly=True)
+    set_th_cookie(resp, TOKEN_COOKIE_NAME, access_token, lifetime)
+    set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, refresh_token, lifetime)
 
     return resp
 
@@ -109,7 +126,7 @@ def refresh():
 @token_handler.post('/th/logout')
 def logout():
     resp = make_response(jsonify(), 204)
-    resp.set_cookie(TOKEN_COOKIE_NAME, '', httponly=True, expires=0)
-    resp.set_cookie(TOKEN_REFRESH_COOKIE_NAME, '', httponly=True, expires=0)
+    set_th_cookie(resp, TOKEN_COOKIE_NAME, '', 0)
+    set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, '', 0)
 
     return resp
