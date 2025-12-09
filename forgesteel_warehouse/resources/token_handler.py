@@ -34,6 +34,7 @@ def get_session():
 
 def set_th_cookie(resp: Response, name: str, value: str, max_age: int):
     ## TODO: enable samesite once co-hosted with app
+    ##       might also be able to remove partitioned then
     if max_age > 0:
         resp.set_cookie(name, value,
                         max_age=max_age,

@@ -221,6 +221,7 @@ git push origin tag vX.Y.Z
 - [x] Patreon OAuth integration
 - [x] proper logging
 - [x] Rework API key auth
+- [ ] Improve log formatting
 - [ ] Add overview/instructions html page to root
 - [ ] Add ability to bypass bootstrap
 - [ ] Add ability to pull secrets from env
