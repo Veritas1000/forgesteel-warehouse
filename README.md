@@ -81,11 +81,11 @@ services:
 ```
 
 ### Connecting with Forge Steel
-*Note: This is currently in a closed beta, so you will need to enable the feature flag to see the connection settings for forgesteel-warehouse*
-
 - In Forge Steel, go to the **Admin** section under **Settings**.
 
-- There, expand the 'Forge Steel Warehouse' section, and turn on `Connect with Forge Steel Warehouse'.
+- Under **Feature Flags**, enter the Feature Flag `Treat Curve`. This will enable the Fore Steel Warehouse settings.
+
+- Then, expand the 'Forge Steel Warehouse' section, and turn on `Connect with Forge Steel Warehouse'.
 
 - Enter the hostname and port for your warehouse instance (if running locally with the dev server or example compose file above, it will be `http://localhost:5000`)
 
@@ -157,7 +157,7 @@ python -m pip install -r requirements.txt
 
 Run the api backend in development mode:
 ```bash
-python dev_server.py
+./dev_server.sh
 ```
 
 ### Run tests
