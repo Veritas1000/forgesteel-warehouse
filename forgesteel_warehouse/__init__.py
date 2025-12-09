@@ -75,7 +75,6 @@ def init_app(app_config=None):
     handler.setFormatter(formatter)
     root.addHandler(handler)
 
-
     ## Initialize extensions with app
     db.init_app(app)
     jwt.init_app(app)

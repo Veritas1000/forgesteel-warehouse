@@ -18,7 +18,14 @@ def mock_log_level_env(monkeypatch):
             monkeypatch.setenv(k, v)
         yield
 
-def test_log_level_defaults_to_error(app):
+def test_log_level_defaults_to_error():
+    test_config = {
+        'TESTING': True,
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+        'LOG_LEVEL': '',
+    }
+    app = init_app(test_config)
+
     logger = logging.getLogger('forgesteel_warehouse')
 
     assert logger.level == logging.ERROR
@@ -29,7 +36,7 @@ def test_log_level_can_be_set_from_env(mock_log_level_env):
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
     }
     app = init_app(test_config)
-
+    
     logger = logging.getLogger('forgesteel_warehouse')
 
     assert logger.level == logging.DEBUG
