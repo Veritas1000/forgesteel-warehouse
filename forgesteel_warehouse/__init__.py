@@ -29,8 +29,8 @@ def init_app(app_config=None):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     ## Configuration
-    app.config['JWT_SECRET_KEY'] = 'test-jwt-secret-key-change-in-prod'
-    app.config['SECRET_KEY'] ='test-secret-key-change-in-prod'
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'test-jwt-secret-key-change-in-prod')
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'test-secret-key-change-in-prod')
     
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -40,9 +40,9 @@ def init_app(app_config=None):
     
     app.config['JWT_COOKIE_CSRF_PROTECT'] = True
     app.config['JWT_CSRF_METHODS'] = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    app.config['JWT_COOKIE_SECURE'] = True
-    ## TODO: Enable SameSite once possible
-    app.config['JWT_COOKIE_SAMESITE'] = 'None'
+    app.config['JWT_COOKIE_SECURE'] = os.getenv('JWT_COOKIE_SECURE', 'True').lower() in ('true', '1', 't')
+    ## TODO: switch default to SameSite once possible
+    app.config['JWT_COOKIE_SAMESITE'] = os.getenv('JWT_COOKIE_SAMESITE', 'None')
 
     app.config['LOG_LEVEL'] = os.getenv('LOG_LEVEL', 'ERROR')
 
@@ -82,6 +82,7 @@ def init_app(app_config=None):
     root.addHandler(handler)
 
     ## Initialize extensions with app
+    print(app.config['JWT_COOKIE_SECURE'] if 'JWT_COOKIE_SECURE' in app.config else '(unset)')
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)

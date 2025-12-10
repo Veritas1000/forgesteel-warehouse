@@ -12,7 +12,7 @@ def test_auth_required_connect(app_container):
 
     assert r.status_code == 400
 
-def test_connect(container_url, requests_session, csrf_headers):
+def test_connect(container_url, requests_session, csrf_headers, app_container):
     cr = requests_session.get(f"{container_url}/data", headers=csrf_headers)
 
     assert cr.status_code == 200

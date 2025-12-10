@@ -20,6 +20,7 @@ def test_postgres_connection(app_image):
         app_container = ServerContainer(port=5000, image=app_image)
         app_container.with_network(network)
         app_container.with_env('DATABASE_URI', db_url)
+        app_container.with_env('JWT_COOKIE_SECURE', 'False')
         app_container.waiting_for(HttpWaitStrategy(5000, "/healthz"))
 
         test_data = [ { 'foo': 'bar' } ]

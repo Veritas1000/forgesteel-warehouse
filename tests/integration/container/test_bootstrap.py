@@ -1,10 +1,11 @@
+import os
 import re
 import tempfile
 
 from testcontainers.core.wait_strategies import HttpWaitStrategy
 from testcontainers.core.container import DockerContainer
 
-def test_bootstrap_first_run(app_image):
+def test_bootstrap_generates_api_key_first_run(app_image):
     container = DockerContainer(str(app_image), ports=[5000], _wait_strategy=HttpWaitStrategy(5000, "/healthz"))
     with container:
         stdout_bytes, stderr_bytes = container.get_logs()
@@ -14,7 +15,7 @@ def test_bootstrap_first_run(app_image):
         assert re.search(r"Here is your API KEY", log, re.MULTILINE), "api key instructions not found in logs"
         assert re.search(r"^\$1\$[0-9a-f]+$", log, re.MULTILINE), "api key not found in logs"
 
-def test_bootstrap_multiple_runs(app_image):
+def test_bootstrap_doesnt_regenerate_default_user_key_multiple_runs(app_image):
     with tempfile.TemporaryDirectory() as temp_directory:
         container = DockerContainer(str(app_image), ports=[5000], _wait_strategy=HttpWaitStrategy(5000, "/healthz"))
         container.with_volume_mapping(temp_directory, "/data", "rw")

@@ -1,3 +1,5 @@
+import json
+import os
 import tempfile
 import pytest
 import re
@@ -18,6 +20,7 @@ def app_image():
 def app_container(app_image):
     with tempfile.TemporaryDirectory() as temp_directory:
         app_container = ServerContainer(port=5000, image=app_image)
+        app_container.with_env('JWT_COOKIE_SECURE', 'False')
         app_container.with_volume_mapping(temp_directory, "/data", "rw")
         app_container.waiting_for(HttpWaitStrategy(5000, "/healthz"))
 

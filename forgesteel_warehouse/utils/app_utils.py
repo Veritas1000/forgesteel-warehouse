@@ -30,25 +30,25 @@ def bootstrap():
 def create_or_load_config():
     load_dotenv()
     config_path = os.getenv('FSW_CONFIG_PATH', '/data/config.json')
-    with open(config_path, 'a+', encoding='utf-8') as config_file:
-        config_file.seek(0)
-        changed = False
-        try:
-            config = json.load(config_file)
-        except Exception as e:
-            config = {}
+    changed = False
 
-        if 'SECRET_KEY' not in config:
-            config['SECRET_KEY'] = secrets.token_hex(64)
-            changed = True
-        if 'JWT_SECRET_KEY' not in config:
-            config['JWT_SECRET_KEY'] = secrets.token_hex(64)
-            changed = True
-
-        if changed:
+    try:
+        with open(config_path, 'a+', encoding='utf-8') as config_file:
             config_file.seek(0)
+            config = json.load(config_file)
+    except Exception:
+        config = {}
+
+    if 'SECRET_KEY' not in config:
+        config['SECRET_KEY'] = secrets.token_hex(64)
+        changed = True
+    if 'JWT_SECRET_KEY' not in config:
+        config['JWT_SECRET_KEY'] = secrets.token_hex(64)
+        changed = True
+
+    if changed:
+        with open(config_path, 'w', encoding='utf-8') as config_file:
             json.dump(config, config_file, ensure_ascii=False, indent=4)
-            config_file.truncate()
 
     return config
 
