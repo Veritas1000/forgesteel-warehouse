@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, jsonify, redirect, request, make_response
+from flask import Blueprint, jsonify, request, make_response
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, current_user, set_access_cookies, set_refresh_cookies
 
 from forgesteel_warehouse.models import User
@@ -12,7 +12,9 @@ forgesteel_connector = Blueprint('forgesteel_connector', __name__)
 @forgesteel_connector.post('/connect')
 def connect():
     auth = request.authorization
+    log.debug(auth)
     if auth and auth.token:
+        log.debug(f"Auth token: {auth.token}")
         try:
             user = User.find_by_api_token(auth.token)
             if user:

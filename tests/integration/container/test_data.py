@@ -1,5 +1,7 @@
+import logging
 import pytest
 
+log = logging.getLogger(__name__)
 
 @pytest.fixture(params=[
     'forgesteel-heroes',
@@ -55,4 +57,3 @@ def test_put_data_key_updates_existing(requests_session, user_headers, data_key_
 
     assert response3.ok
     assert response3.json()['data'] == data2
-
