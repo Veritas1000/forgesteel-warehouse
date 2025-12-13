@@ -10,9 +10,8 @@ class RequestPathFilter(logging.Filter):
     def filter(self, record):
         req_path = record.args['U'] # type: ignore
         if not self.path_filter.match(req_path):
-            return True  # log this entry
-        # ... additional conditions can be added here ...
-        return False     # do not log this entry
+            return True
+        return False
 
 
 def on_starting(server):

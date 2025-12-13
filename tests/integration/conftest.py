@@ -49,8 +49,23 @@ def csrf_headers(container_url, api_token, requests_session):
     cr = requests_session.post(f"{container_url}/connect", headers=connect_headers)
 
     token = get_csrf_access_token_from_response(cr)
-    assert cr.status_code == 204
+    assert cr.status_code == 200
     assert token is not None
 
     headers = {'X-CSRF-TOKEN': token}
     return headers
+
+@pytest.fixture()
+def auth_headers(container_url, api_token):
+    connect_headers = {'Authorization': f"Bearer {api_token}"}
+    cr = requests.post(f"{container_url}/connect", headers=connect_headers)
+    access_token = cr.json()['access_token']
+    assert cr.status_code == 200
+    assert access_token is not None
+
+    headers = {'Authorization': f"Bearer {access_token}"}
+    return headers
+
+@pytest.fixture(params=['csrf_headers', 'auth_headers'])
+def user_headers(request):
+    return request.getfixturevalue(request.param)

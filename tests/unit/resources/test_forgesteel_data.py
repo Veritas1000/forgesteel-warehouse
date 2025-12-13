@@ -1,9 +1,13 @@
+import pytest
+
+
 def test_get_data_without_token_returns_401(client, test_user):
     response = client.get('/data')
     assert response.status_code == 401
 
-def test_get_data_with_token_returns_keys(client, csrf_headers):
-    response = client.get('/data', headers=csrf_headers)
+@pytest.mark.parametrize('headers', [('csrf_headers'), ('auth_headers')])
+def test_get_data_with_token_returns_keys(headers, client, request):
+    response = client.get('/data', headers=request.getfixturevalue(headers))
 
     assert response.status_code == 200
     assert response.json['keys'] is not None

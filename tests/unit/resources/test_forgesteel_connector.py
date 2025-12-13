@@ -15,7 +15,8 @@ def test_connect_returns_401_with_bad_token(client, test_user):
 
 def test_connect_returns_200_with_good_token(client, test_user_token):
     response = client.post('/connect', headers=[['Authorization', f"Bearer {test_user_token}"]])
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json['access_token'] is not None
 
 def test_protected_with_token(client, csrf_headers):
     response = client.get('/me', headers=csrf_headers)

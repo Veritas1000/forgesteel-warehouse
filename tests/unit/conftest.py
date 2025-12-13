@@ -44,6 +44,16 @@ def test_user(app: Flask):
 def test_user_token(test_user: User):
     return ApiKey.makeApiKey(test_user.id, 'TOKEN-1')
 
+@pytest.fixture(scope="session")
+def auth_token(app: Flask, test_user_token: str):
+    authResponse = app.test_client().post('/connect', headers=[['Authorization', f"Bearer {test_user_token}"]])
+    token = authResponse.json['access_token'] if authResponse.json is not None else ''
+    return token
+
+@pytest.fixture(scope="session")
+def auth_headers(auth_token):
+    return [['Authorization', f"Bearer {auth_token}"]]
+
 @pytest.fixture()
 def csrf_headers(client: FlaskClient, test_user_token: str):
     response = client.post('/connect', headers=[['Authorization', f"Bearer {test_user_token}"]])
@@ -51,6 +61,10 @@ def csrf_headers(client: FlaskClient, test_user_token: str):
     token = get_csrf_access_token_from_response(response)
     
     return {"X-CSRF-TOKEN": token}
+
+@pytest.fixture(params=['csrf_headers', 'auth_headers'])
+def user_headers(request):
+    return request.getfixturevalue(request.param)
 
 @pytest.fixture(autouse=True)
 def mock_env_vars(monkeypatch: pytest.MonkeyPatch):

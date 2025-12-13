@@ -36,12 +36,12 @@ def init_app(app_config=None):
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
     
-    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
     
     app.config['JWT_COOKIE_CSRF_PROTECT'] = True
     app.config['JWT_CSRF_METHODS'] = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     app.config['JWT_COOKIE_SECURE'] = os.getenv('JWT_COOKIE_SECURE', 'True').lower() in ('true', '1', 't')
-    ## TODO: switch default to SameSite once possible
+    ## TODO: switch default to Always once possible
     app.config['JWT_COOKIE_SAMESITE'] = os.getenv('JWT_COOKIE_SAMESITE', 'None')
 
     app.config['LOG_LEVEL'] = os.getenv('LOG_LEVEL', 'ERROR')
@@ -77,12 +77,11 @@ def init_app(app_config=None):
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
 
-    formatter = logging.Formatter('%(levelname)s: %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
     handler.setFormatter(formatter)
     root.addHandler(handler)
 
     ## Initialize extensions with app
-    print(app.config['JWT_COOKIE_SECURE'] if 'JWT_COOKIE_SECURE' in app.config else '(unset)')
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)

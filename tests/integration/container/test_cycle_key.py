@@ -11,7 +11,7 @@ def test_cycle_user_key(app_container, api_token):
     cr = requests.post(f"{url}/connect", headers=connect_headers)
     
     token = get_csrf_access_token_from_response(cr)
-    assert cr.status_code == 204
+    assert cr.status_code == 200
     assert token is not None
 
     ## generate a new key
@@ -34,5 +34,5 @@ def test_cycle_user_key(app_container, api_token):
     cr = requests.post(f"{url}/connect", headers=new_connect_headers)
     
     token = get_csrf_access_token_from_response(cr)
-    assert cr.status_code == 204
+    assert cr.status_code == 200
     assert token is not None

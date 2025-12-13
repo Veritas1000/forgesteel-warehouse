@@ -18,7 +18,7 @@ def connect():
             if user:
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
-                resp = make_response({}, 204)
+                resp = make_response(jsonify(access_token=access_token), 200)
                 set_access_cookies(resp, access_token)
                 set_refresh_cookies(resp, refresh_token)
         
