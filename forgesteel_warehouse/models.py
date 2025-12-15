@@ -41,10 +41,8 @@ class User(db.Model):
     @classmethod
     def find_by_api_token(cls, api_token):
         (uid, key) = ApiKey.parseApiKey(api_token)
-        log.debug(f"uid: {uid}, key: {key}")
         user = db.session.execute(db.select(User).filter_by(id=uid)).scalar_one_or_none()
-        
-        log.debug(f"user: {user}")
+
         if user is not None and user.check_auth_key(key):
             return user
     

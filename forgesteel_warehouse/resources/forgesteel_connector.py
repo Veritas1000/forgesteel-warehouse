@@ -12,9 +12,10 @@ forgesteel_connector = Blueprint('forgesteel_connector', __name__)
 @forgesteel_connector.post('/connect')
 def connect():
     auth = request.authorization
-    log.debug(auth)
+    if auth is None:
+        log.debug('No authorization header!')
+
     if auth and auth.token:
-        log.debug(f"Auth token: {auth.token}")
         try:
             user = User.find_by_api_token(auth.token)
             if user:
