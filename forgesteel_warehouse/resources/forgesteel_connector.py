@@ -21,7 +21,7 @@ def connect():
             if user:
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
-                resp = make_response(jsonify(access_token=access_token), 200)
+                resp = make_response(jsonify(access_token=access_token, refresh_token=refresh_token), 200)
                 set_access_cookies(resp, access_token)
                 set_refresh_cookies(resp, refresh_token)
         
@@ -31,6 +31,12 @@ def connect():
         return make_response(jsonify(message='Invalid token'), 401, {'WWW-Authenticate': 'Bearer realm="Authorization required"'})
 
     return make_response(jsonify(message='Token required'), 400, {'WWW-Authenticate': 'Bearer realm="Authorization required"'})
+
+@forgesteel_connector.post('/refresh')
+@jwt_required(refresh=True)
+def refresh():
+    access_token = create_access_token(identity=current_user)
+    return jsonify(access_token=access_token)
 
 @forgesteel_connector.route('/me')
 @jwt_required()
