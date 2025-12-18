@@ -92,19 +92,13 @@ services:
 - Enter the API key displayed when you ran the warehouse the very first time.
 ![Forge Steel Warehouse settings](docs/images/connection_settings.png)
 
-- At this point, clicking 'Test Connection' should show 'Success!'. You can then save the settings and **refresh Forge Steel** to have it use the warehouse for data storage.
+- At this point, clicking 'Test Connection' should show 'Success!'. You can then save the settings and either follow the prompt to **Reload Forge Steel**, or click the button at the top of the panel to **Transfer Data**.
 
 #### Transferring data into the warehouse
-Right now, there is no automatic data migration from the old local Forge Steel storage to the Warehouse, so on loading Forge Steel while connected to the Warehouse, it will look like all of your data is gone! However, your local data is still there.
+Right now, there is no automatic data migration from the old local Forge Steel storage to the Warehouse, so upon loading Forge Steel while connected to the Warehouse, it will look like all of your data is gone! However, your local data is still there.
 
 To transfer data into the warehouse:
-- Turn off the forgesteel-warehouse connection in the settings.
-- Reload Forge Steel in your browser
-- Go to [the Forge Steel backup page](https://andyaiken.github.io/forgesteel/#/backup) and download everything you want to bring over to the warehouse.
-- Turn back on the forgesteel-warehouse data connection.
-- Reload Forge Steel in your browser
-- Import everything you exported above back into Forge Steel.
-- That data is now stored in your local warehouse!
+- Go to [the Forge Steel transfer](https://andyaiken.github.io/forgesteel/#/transfer) and follow the instructions on that page.
 
 ### Additional users
 
