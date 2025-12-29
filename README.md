@@ -131,6 +131,32 @@ docker exec -it fs-warehouse-ct python /app/utils/cycle_key.py
 
 The script will output the new api key to the console.
 
+## Troubleshooting
+
+### 503 mixed-content error when running over HTTP
+
+Is some browsers (such as Chrome), the default secutiry settings block non-HTTPS requests by a page that is itself served over HTTPS. When this happens, you will see an error like `503 Error: Offline` when testing the connection with Forge Steel.
+
+![An error alert showing a 503 error message](image.png)
+
+This can be further verified by looking at the network trace in Dev Tools, which will show the specific `blocked:mixed-content` error.
+
+![dev tools network tab showing a blocked:mixed-content message](docs/images/blocked_mixed_content.png)
+
+The best solution to this is to get a free HTTPS certificate through something like [Lets Encrypt](https://letsencrypt.org/), but if that is not an option for you, your browser may have a setting to enable insecure content for a particular website (Forge Steel in this case).
+
+In Chrome, this can be done by going to **Site Settings**, and setting **Insecure Content** to `Allow`
+
+![a screenshot showing how to find the 'Site Settings' option in Chrome](docs/images/site_settings.png)
+
+![a screenshow showing how to enable insecure content in chrome settings](docs/images/insecure_content_allow.png)
+
+If you are hosting your Warehouse instance on your local network and accessing it via IP address instead of hostname, you'll also likely need to enable `Local Network Access` in the Site Settings page as well.
+
+![screenshot showing the Local Network access setting set to Allow](docs/images/local_network_access.png)
+
+You may also have to reload the app/page several times (including a hard refresh - which in Chrome on Windows is `Ctrl + F5`).
+
 ## Development
 
 ### Set up python virtual environment
@@ -211,11 +237,8 @@ git push origin tag vX.Y.Z
 
 ### Todos
 
-- [x] Rotating/regenerating single-user key
-- [x] Patreon OAuth integration
-- [x] proper logging
 - [x] Rework API key auth
-- [ ] Improve log formatting
+- [x] Improve log formatting
+- [x] Add ability to pull secrets from env
 - [ ] Add overview/instructions html page to root
 - [ ] Add ability to bypass bootstrap
-- [ ] Add ability to pull secrets from env
