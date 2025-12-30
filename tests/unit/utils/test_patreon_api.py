@@ -151,6 +151,7 @@ def test__parse_identity_response_mcdm_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.mcdm is not None
         assert user.mcdm.patron == True
         assert len(user.mcdm.tiers) == 1
         assert user.mcdm.tiers[0].title == 'MCDM+'
@@ -163,6 +164,7 @@ def test__parse_identity_response_forgesteel_former_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.forgesteel is not None
         assert user.forgesteel.patron == False
         assert user.forgesteel.tiers == []
         assert user.forgesteel.tier_cents == 0
@@ -174,6 +176,7 @@ def test__parse_identity_response_mcdm_former_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.mcdm is not None
         assert user.mcdm.patron == False
         assert user.mcdm.tiers == []
         assert user.mcdm.tier_cents == 0
@@ -185,6 +188,7 @@ def test__parse_identity_response_forgesteel_non_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.forgesteel is not None
         assert user.forgesteel.patron == False
         assert user.forgesteel.tiers == []
         assert user.forgesteel.tier_cents == 0
@@ -196,6 +200,7 @@ def test__parse_identity_response_mcdm_non_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.mcdm is not None
         assert user.mcdm.patron == False
         assert user.mcdm.tiers == []
         assert user.mcdm.tier_cents == 0
@@ -207,11 +212,13 @@ def test__parse_identity_response_patron_none():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.mcdm is not None
         assert user.mcdm.patron == False
         assert user.mcdm.tiers == []
         assert user.mcdm.tier_cents == 0
         assert user.mcdm.start == None
         
+        assert user.forgesteel is not None
         assert user.forgesteel.patron == False
         assert user.forgesteel.tiers == []
         assert user.forgesteel.tier_cents == 0
@@ -222,11 +229,13 @@ def test__parse_identity_response_no_json():
 
     api = PatreonApi()
     user = api._parse_identity_response(mock_data)
+    assert user.mcdm is not None
     assert user.mcdm.patron == False
     assert user.mcdm.tiers == []
     assert user.mcdm.tier_cents == 0
     assert user.mcdm.start == None
         
+    assert user.forgesteel is not None
     assert user.forgesteel.patron == False
     assert user.forgesteel.tiers == []
     assert user.forgesteel.tier_cents == 0
@@ -246,6 +255,7 @@ def test_get_identity_success_patron(mock_get):
     api = PatreonApi()
     user_data = api.get_identity(token)
 
+    assert user_data.mcdm is not None
     assert user_data.mcdm.patron == True
     assert user_data.mcdm.tier_cents == 800
     assert user_data.mcdm.start == date(2019, 2, 13)
