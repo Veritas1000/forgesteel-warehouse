@@ -20,12 +20,10 @@ def get_session():
     token = request.cookies.get(TOKEN_COOKIE_NAME)
 
     logged_in = token is not None
-
     user_data = None
     if logged_in:
-        user_data = patreon_api.get_identity(token)
-
         ## TODO: refresh tokens as part of this?
+        user_data = patreon_api.get_identity(token)
 
     return jsonify({
         'authenticated_with_patreon': logged_in,
@@ -117,8 +115,8 @@ def login_end():
 ## Refresh current access token and rewrite secure cookies
 @token_handler.post('/th/refresh')
 def refresh():
-    patreon_api = PatreonApi()
     refresh_token = request.cookies.get(TOKEN_REFRESH_COOKIE_NAME)
+    patreon_api = PatreonApi()
 
     access_token, refresh_token, lifetime = patreon_api.refresh_token(refresh_token)
     

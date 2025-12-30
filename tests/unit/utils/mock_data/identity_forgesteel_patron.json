@@ -21,31 +21,43 @@
       "id": "abcd-88c1-4bdf-b7b5-1234",
       "type": "member",
       "attributes": {
-        "patron_status": "former_patron",
+        "patron_status": "active_patron",
         "pledge_relationship_start": "2019-02-13T13:40:31.533+00:00",
-        "currently_entitled_amount_cents": 0,
+        "currently_entitled_amount_cents": 300,
         "last_charge_status": "Paid"
       },
       "relationships": {
         "campaign": {
           "data": {
-            "id": "42424242",
+            "id": "12345678",
             "type": "campaign"
           },
           "links": {
-            "related": "https://fake.patreon.com/api/oauth2/v2/campaigns/42424242"
+            "related": "https://fake.patreon.com/api/oauth2/v2/campaigns/12345678"
           }
         },
         "currently_entitled_tiers": {
-          "data": []
+          "data": [
+            {
+              "id": "98765432",
+              "type": "tier"
+            }
+          ]
         }
       }
     },
     {
-      "id": "42424242",
+      "id": "12345678",
       "type": "campaign",
       "attributes": {
-        "url": "https://fake.patreon.com/mcdm"
+        "url": "https://fake.patreon.com/forgesteel"
+      }
+    },
+    {
+      "id": "98765432",
+      "type": "tier",
+      "attributes": {
+        "title": "Forge Steel"
       }
     }
   ],

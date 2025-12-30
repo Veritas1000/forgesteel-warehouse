@@ -152,8 +152,21 @@ def test__parse_identity_response_mcdm_patron():
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
         assert user.mcdm.patron == True
+        assert len(user.mcdm.tiers) == 1
+        assert user.mcdm.tiers[0].title == 'MCDM+'
         assert user.mcdm.tier_cents == 800
         assert user.mcdm.start == date(2019, 2, 13)
+
+def test__parse_identity_response_forgesteel_former_patron():
+    with open(os.path.join(os.path.dirname(__file__), 'mock_data/identity_forgesteel_former_patron.json')) as f:
+        mock_data = json.load(f)
+
+        api = PatreonApi()
+        user = api._parse_identity_response(mock_data)
+        assert user.forgesteel.patron == False
+        assert user.forgesteel.tiers == []
+        assert user.forgesteel.tier_cents == 0
+        assert user.forgesteel.start == None
 
 def test__parse_identity_response_mcdm_former_patron():
     with open(os.path.join(os.path.dirname(__file__), 'mock_data/identity_mcdm_former_patron.json')) as f:
@@ -162,8 +175,20 @@ def test__parse_identity_response_mcdm_former_patron():
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
         assert user.mcdm.patron == False
+        assert user.mcdm.tiers == []
         assert user.mcdm.tier_cents == 0
         assert user.mcdm.start == None
+
+def test__parse_identity_response_forgesteel_non_patron():
+    with open(os.path.join(os.path.dirname(__file__), 'mock_data/identity_forgesteel_non_patron.json')) as f:
+        mock_data = json.load(f)
+
+        api = PatreonApi()
+        user = api._parse_identity_response(mock_data)
+        assert user.forgesteel.patron == False
+        assert user.forgesteel.tiers == []
+        assert user.forgesteel.tier_cents == 0
+        assert user.forgesteel.start == None
 
 def test__parse_identity_response_mcdm_non_patron():
     with open(os.path.join(os.path.dirname(__file__), 'mock_data/identity_mcdm_non_patron.json')) as f:
@@ -172,18 +197,25 @@ def test__parse_identity_response_mcdm_non_patron():
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
         assert user.mcdm.patron == False
+        assert user.mcdm.tiers == []
         assert user.mcdm.tier_cents == 0
         assert user.mcdm.start == None
 
-def test__parse_identity_response_no_mcdm_patron():
-    with open(os.path.join(os.path.dirname(__file__), 'mock_data/identity_no_mcdm.json')) as f:
+def test__parse_identity_response_patron_none():
+    with open(os.path.join(os.path.dirname(__file__), 'mock_data/identity_none_patron.json')) as f:
         mock_data = json.load(f)
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
         assert user.mcdm.patron == False
+        assert user.mcdm.tiers == []
         assert user.mcdm.tier_cents == 0
         assert user.mcdm.start == None
+        
+        assert user.forgesteel.patron == False
+        assert user.forgesteel.tiers == []
+        assert user.forgesteel.tier_cents == 0
+        assert user.forgesteel.start == None
 
 def test__parse_identity_response_no_json():
     mock_data = {}
@@ -191,8 +223,14 @@ def test__parse_identity_response_no_json():
     api = PatreonApi()
     user = api._parse_identity_response(mock_data)
     assert user.mcdm.patron == False
+    assert user.mcdm.tiers == []
     assert user.mcdm.tier_cents == 0
     assert user.mcdm.start == None
+        
+    assert user.forgesteel.patron == False
+    assert user.forgesteel.tiers == []
+    assert user.forgesteel.tier_cents == 0
+    assert user.forgesteel.start == None
 
 @patch('requests.get')
 def test_get_identity_success_patron(mock_get):

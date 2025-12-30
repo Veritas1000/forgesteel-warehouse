@@ -29,11 +29,11 @@
       "relationships": {
         "campaign": {
           "data": {
-            "id": "42424242",
+            "id": "12345678",
             "type": "campaign"
           },
           "links": {
-            "related": "https://fake.patreon.com/api/oauth2/v2/campaigns/42424242"
+            "related": "https://fake.patreon.com/api/oauth2/v2/campaigns/12345678"
           }
         },
         "currently_entitled_tiers": {
@@ -42,10 +42,10 @@
       }
     },
     {
-      "id": "42424242",
+      "id": "12345678",
       "type": "campaign",
       "attributes": {
-        "url": "https://fake.patreon.com/mcdm"
+        "url": "https://fake.patreon.com/forgesteel"
       }
     }
   ],

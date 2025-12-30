@@ -35,6 +35,14 @@
           "links": {
             "related": "https://fake.patreon.com/api/oauth2/v2/campaigns/42424242"
           }
+        },
+        "currently_entitled_tiers": {
+          "data": [
+            {
+              "id": "12341234",
+              "type": "tier"
+            }
+          ]
         }
       }
     },
@@ -43,6 +51,13 @@
       "type": "campaign",
       "attributes": {
         "url": "https://fake.patreon.com/mcdm"
+      }
+    },
+    {
+      "id": "12341234",
+      "type": "tier",
+      "attributes": {
+        "title": "MCDM+"
       }
     }
   ],
