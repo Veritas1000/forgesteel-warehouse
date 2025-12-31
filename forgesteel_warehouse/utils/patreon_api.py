@@ -138,6 +138,16 @@ class PatreonApi:
             raise Exception(f"Error communicating with Patreon: {msg}")
 
     def _parse_identity_response(self, identity_json):
+        patreon_id = None
+        patreon_email = None
+
+        if identity_json is not None and 'data' in identity_json:
+            if 'id' in identity_json['data']:
+                patreon_id = identity_json['data']['id']
+
+            if 'attributes' in identity_json['data'] and 'email' in identity_json['data']['attributes']:
+                patreon_email = identity_json['data']['attributes']['email']
+
         forgesteel_state = PatronState()
         mcdm_state = PatronState()
 
@@ -161,6 +171,8 @@ class PatreonApi:
             mcdm_state = self._get_patron_state(self.MCDM_CAMPAIGN_ID, memberships, tier_map)
 
         return PatreonUser(
+            id=patreon_id,
+            email=patreon_email,
             forgesteel=forgesteel_state,
             mcdm=mcdm_state
         )
@@ -194,5 +206,7 @@ class PatronState:
 
 @dataclass
 class PatreonUser:
+    id: str | None = None
+    email: str | None = None
     forgesteel: PatronState | None = None
     mcdm: PatronState | None = None

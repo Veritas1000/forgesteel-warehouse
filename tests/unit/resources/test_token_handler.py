@@ -1,10 +1,11 @@
 from datetime import date
-from typing import Any
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
 
 from flask.testing import FlaskClient
+from forgesteel_warehouse import db
+from forgesteel_warehouse.models import User
 from forgesteel_warehouse.resources.token_handler import TEMP_LOGIN_COOKIE_NAME, TOKEN_COOKIE_NAME, TOKEN_REFRESH_COOKIE_NAME
-from forgesteel_warehouse.utils.patreon_api import PatreonApi, PatreonUser, PatronState
+from forgesteel_warehouse.utils.patreon_api import PatreonUser, PatronState
 
 
 def test_session_returns_no_session_when_none(client: FlaskClient, patreon_api: MagicMock):
@@ -97,6 +98,129 @@ def test_login_end_success(client: FlaskClient, patreon_api: MagicMock):
     
     login_cookie = client.get_cookie(TEMP_LOGIN_COOKIE_NAME)
     assert login_cookie is None
+
+def test_login_end_success_creates_user_for_patrons(client: FlaskClient, patreon_api: MagicMock):
+    user_patreon_id = '12345678'
+    user_patreon_email = 'test@email.com'
+    ## Verify user doesn't exist yet
+    user = User.find_by_patreon_id(user_patreon_id)
+    assert user is None
+
+    login_cookie = 'expected-login-cookie'
+    patreon_code = 'pcode_asdf'
+
+    auth_token = 'qwerty_5432'
+    refresh_token = 'refresh_5432'
+    lifetime = 5432
+    patreon_api.get_token.return_value = auth_token, refresh_token, lifetime
+    mock_user_data = PatreonUser(
+            id=user_patreon_id,
+            email=user_patreon_email,
+            forgesteel=PatronState(patron=True, start=date(2022, 2, 22))
+        )
+    patreon_api.get_identity.return_value = mock_user_data
+
+    client.set_cookie(TEMP_LOGIN_COOKIE_NAME, login_cookie)
+    response = client.post('/th/login/end', json={'state': login_cookie, 'code': patreon_code})
+
+    ## Verify response contents
+    assert response.status_code == 200
+    assert response.json is not None
+    assert response.json['authenticated_with_patreon'] == True
+    assert response.json['user']['id'] == user_patreon_id
+    assert response.json['user']['email'] == user_patreon_email
+    assert response.json['user']['forgesteel']['patron'] == True
+
+    ## Verify User exists
+    user = User.find_by_patreon_id(user_patreon_id)
+    assert user is not None
+    assert user.patreon_id == user_patreon_id
+    assert user.patreon_email == user_patreon_email
+
+    ## Verify cookies?
+
+def test_login_end_success_doesnt_create_user_for_non_patrons(client: FlaskClient, patreon_api: MagicMock):
+    user_patreon_id = '87654321'
+    user_patreon_email = 'test@email.com'
+    ## Verify user doesn't exist yet
+    user = User.find_by_patreon_id(user_patreon_id)
+    assert user is None
+
+    login_cookie = 'expected-login-cookie'
+    patreon_code = 'pcode_asdf'
+
+    auth_token = 'qwerty_5432'
+    refresh_token = 'refresh_5432'
+    lifetime = 5432
+    patreon_api.get_token.return_value = auth_token, refresh_token, lifetime
+    mock_user_data = PatreonUser(
+            id=user_patreon_id,
+            email=user_patreon_email,
+            forgesteel=PatronState(patron=False)
+        )
+    patreon_api.get_identity.return_value = mock_user_data
+
+    client.set_cookie(TEMP_LOGIN_COOKIE_NAME, login_cookie)
+    response = client.post('/th/login/end', json={'state': login_cookie, 'code': patreon_code})
+
+    ## Verify response contents
+    assert response.status_code == 200
+    assert response.json is not None
+    assert response.json['authenticated_with_patreon'] == True
+    assert response.json['user']['id'] == user_patreon_id
+    assert response.json['user']['email'] == user_patreon_email
+    assert response.json['user']['forgesteel']['patron'] == False
+
+    ## Verify User was not created
+    user = User.find_by_patreon_id(user_patreon_id)
+    assert user is None
+
+def test_login_end_success_doesnt_recreate_existing_user(client: FlaskClient, patreon_api: MagicMock):
+    user_patreon_id = '8675309'
+    user_patreon_email = 'test@email.com'
+
+    existing_user = User(name=user_patreon_email)
+    existing_user.patreon_email = user_patreon_email
+    existing_user.patreon_id = user_patreon_id
+    db.session.add(existing_user)
+    db.session.commit()
+
+    ## Verify user exists
+    user = User.find_by_patreon_id(user_patreon_id)
+    assert user is not None
+    assert user.patreon_id == user_patreon_id
+    assert user.patreon_email == user_patreon_email
+
+    login_cookie = 'expected-login-cookie'
+    patreon_code = 'pcode_asdf'
+
+    auth_token = 'qwerty_5432'
+    refresh_token = 'refresh_5432'
+    lifetime = 5432
+    patreon_api.get_token.return_value = auth_token, refresh_token, lifetime
+    mock_user_data = PatreonUser(
+            id=user_patreon_id,
+            email=user_patreon_email,
+            forgesteel=PatronState(patron=False)
+        )
+    patreon_api.get_identity.return_value = mock_user_data
+
+    client.set_cookie(TEMP_LOGIN_COOKIE_NAME, login_cookie)
+    response = client.post('/th/login/end', json={'state': login_cookie, 'code': patreon_code})
+
+    ## Verify response contents
+    assert response.status_code == 200
+    assert response.json is not None
+    assert response.json['authenticated_with_patreon'] == True
+    assert response.json['user']['id'] == user_patreon_id
+    assert response.json['user']['email'] == user_patreon_email
+    assert response.json['user']['forgesteel']['patron'] == False
+
+    ## Verify User still there
+    user = User.find_by_patreon_id(user_patreon_id)
+    assert user is not None
+    assert user.patreon_id == user_patreon_id
+    assert user.patreon_email == user_patreon_email
 
 def test_login_end_handles_api_errors(client: FlaskClient, patreon_api: MagicMock):
     login_cookie = 'expected-login-cookie'

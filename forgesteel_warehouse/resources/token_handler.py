@@ -3,6 +3,8 @@ import os
 import uuid
 from flask import Blueprint, Response, jsonify, make_response, request
 
+from forgesteel_warehouse import db
+from forgesteel_warehouse.models import User
 from forgesteel_warehouse.utils.patreon_api import PatreonApi
 
 token_handler = Blueprint('token_handler', __name__)
@@ -22,13 +24,41 @@ def get_session():
     logged_in = token is not None
     user_data = None
     if logged_in:
-        ## TODO: refresh tokens as part of this?
-        user_data = patreon_api.get_identity(token)
+        return get_patreon_info_and_make_response(token)
+    else:
+        return jsonify({
+            'authenticated_with_patreon': logged_in,
+            'user': user_data
+        })
 
-    return jsonify({
-        'authenticated_with_patreon': logged_in,
+def get_patreon_info_and_make_response(access_token):
+    patreon_api = PatreonApi()
+    user_data = patreon_api.get_identity(access_token)
+
+    user_patreon_id = user_data.id
+    ## ensure user for forgesteel patrons
+    if user_patreon_id is not None \
+            and user_data.forgesteel is not None \
+            and user_data.forgesteel.patron is True:
+        user = User.find_by_patreon_id(user_patreon_id)
+        if user is None:
+            new_user = User(name=user_data.email)
+            new_user.patreon_email = user_data.email
+            new_user.patreon_id = user_patreon_id
+            db.session.add(new_user)
+            db.session.commit()
+
+    resp = make_response(jsonify({
+        'authenticated_with_patreon': True,
         'user': user_data
-    })
+    }))
+
+    ## TODO: add identity jwt cookies? Refresh patreoon tokens?
+    # access_token, refresh_token, lifetime = patreon_api.refresh_token(refresh_token)
+    # set_th_cookie(resp, TOKEN_COOKIE_NAME, access_token, lifetime)
+    # set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, refresh_token, lifetime)
+
+    return resp
 
 def set_th_cookie(resp: Response, name: str, value: str, max_age: int):
     ## TODO: enable samesite once co-hosted with app
@@ -92,12 +122,7 @@ def login_end():
     patreon_api = PatreonApi()
     try:
         access_token, refresh_token, lifetime = patreon_api.get_token(code, redirect_url)
-        user_data = patreon_api.get_identity(access_token)
-
-        resp = make_response(jsonify({
-            'authenticated_with_patreon': True,
-            'user': user_data
-        }))
+        resp = get_patreon_info_and_make_response(access_token)
 
         set_th_cookie(resp, TOKEN_COOKIE_NAME, access_token, lifetime)
         set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, refresh_token, lifetime)

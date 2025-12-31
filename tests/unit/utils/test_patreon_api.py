@@ -151,6 +151,8 @@ def test__parse_identity_response_mcdm_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.id == '123456'
+        assert user.email == 'test@email.com'
         assert user.mcdm is not None
         assert user.mcdm.patron == True
         assert len(user.mcdm.tiers) == 1
@@ -164,6 +166,8 @@ def test__parse_identity_response_forgesteel_former_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.id == '123456'
+        assert user.email == 'test@email.com'
         assert user.forgesteel is not None
         assert user.forgesteel.patron == False
         assert user.forgesteel.tiers == []
@@ -176,6 +180,8 @@ def test__parse_identity_response_mcdm_former_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.id == '123456'
+        assert user.email == 'test@email.com'
         assert user.mcdm is not None
         assert user.mcdm.patron == False
         assert user.mcdm.tiers == []
@@ -188,6 +194,8 @@ def test__parse_identity_response_forgesteel_non_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.id == '123456'
+        assert user.email == 'test@email.com'
         assert user.forgesteel is not None
         assert user.forgesteel.patron == False
         assert user.forgesteel.tiers == []
@@ -200,6 +208,8 @@ def test__parse_identity_response_mcdm_non_patron():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.id == '123456'
+        assert user.email == 'test@email.com'
         assert user.mcdm is not None
         assert user.mcdm.patron == False
         assert user.mcdm.tiers == []
@@ -212,6 +222,8 @@ def test__parse_identity_response_patron_none():
 
         api = PatreonApi()
         user = api._parse_identity_response(mock_data)
+        assert user.id == '123456'
+        assert user.email == 'test@email.com'
         assert user.mcdm is not None
         assert user.mcdm.patron == False
         assert user.mcdm.tiers == []
@@ -229,6 +241,8 @@ def test__parse_identity_response_no_json():
 
     api = PatreonApi()
     user = api._parse_identity_response(mock_data)
+    assert user.id == None
+    assert user.email == None
     assert user.mcdm is not None
     assert user.mcdm.patron == False
     assert user.mcdm.tiers == []

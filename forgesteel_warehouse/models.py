@@ -12,17 +12,20 @@ class User(db.Model):
     id = db.mapped_column(db.Integer, primary_key=True)
     name = db.mapped_column(db.String(100))
     _auth_key = db.mapped_column('auth_key', db.String(120))
+    patreon_id = db.mapped_column(db.String(12), unique=True, index=True)
+    patreon_email = db.mapped_column(db.String(100))
     
     heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
     homebrew = db.relationship('FsHomebrew', uselist=False, back_populates='user')
     session = db.relationship('FsSession', uselist=False, back_populates='user')
     hidden_settings = db.relationship('FsHiddenSettings', uselist=False, back_populates='user')
 
-    def __init__(self, name, auth_key=None):
+    def __init__(self, name, auth_key=None, patreon_id=None):
         self.name = name
         self._auth_key = None
         if auth_key is not None:
             self.set_auth_key(auth_key)
+        self.patreon_id = patreon_id
 
     def set_auth_key(self, auth_key):
         ph = PasswordHasher()
@@ -45,6 +48,16 @@ class User(db.Model):
 
         if user is not None and user.check_auth_key(key):
             return user
+    
+        return None
+
+    @classmethod
+    def find_by_patreon_id(cls, patreon_id):
+        if patreon_id is not None:
+            user = db.session.execute(db.select(User).filter_by(patreon_id=patreon_id)).scalar_one_or_none()
+
+            if user is not None:
+                return user
     
         return None
 

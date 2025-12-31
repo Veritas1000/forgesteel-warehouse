@@ -53,3 +53,19 @@ def test_set_auth_key(app):
     assert token2 != token1
     assert user.check_auth_key(auth_key1) is False
     assert user.check_auth_key(auth_key2) is True
+
+def test_user_find_by_patreon_id(app):
+    id1 = '12345'
+    new_user1 = User(name='test_patreon_1', patreon_id=id1)
+    new_user1.patreon_email = 'test1@email.com'
+    db.session.add(new_user1)
+
+    new_user2 = User(name='test_patreon_2', patreon_id='32145')
+    new_user2.patreon_email = 'test2@email.com'
+    db.session.add(new_user2)
+
+    db.session.commit()
+
+    user = User.find_by_patreon_id(id1)
+    assert user is not None
+    assert user.name == 'test_patreon_1'
