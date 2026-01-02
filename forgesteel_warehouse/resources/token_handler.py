@@ -2,6 +2,7 @@ import logging
 import os
 import uuid
 from flask import Blueprint, Response, jsonify, make_response, request
+from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies
 
 from forgesteel_warehouse import db
 from forgesteel_warehouse.models import User
@@ -18,45 +19,45 @@ TOKEN_REFRESH_COOKIE_NAME = 'fs-th-refresh-token'
 ## Gets the current session, if present
 @token_handler.get('/th/session')
 def get_session():
-    patreon_api = PatreonApi()
     token = request.cookies.get(TOKEN_COOKIE_NAME)
 
-    logged_in = token is not None
-    user_data = None
-    if logged_in:
+    try:
         return get_patreon_info_and_make_response(token)
-    else:
-        return jsonify({
-            'authenticated_with_patreon': logged_in,
-            'user': user_data
-        })
+    except:
+        return make_response(jsonify({
+            'authenticated_with_patreon': False,
+            'user': None
+        }))
 
 def get_patreon_info_and_make_response(access_token):
     patreon_api = PatreonApi()
     user_data = patreon_api.get_identity(access_token)
-
-    user_patreon_id = user_data.id
-    ## ensure user for forgesteel patrons
-    if user_patreon_id is not None \
-            and user_data.forgesteel is not None \
-            and user_data.forgesteel.patron is True:
-        user = User.find_by_patreon_id(user_patreon_id)
-        if user is None:
-            new_user = User(name=user_data.email)
-            new_user.patreon_email = user_data.email
-            new_user.patreon_id = user_patreon_id
-            db.session.add(new_user)
-            db.session.commit()
 
     resp = make_response(jsonify({
         'authenticated_with_patreon': True,
         'user': user_data
     }))
 
-    ## TODO: add identity jwt cookies? Refresh patreoon tokens?
-    # access_token, refresh_token, lifetime = patreon_api.refresh_token(refresh_token)
-    # set_th_cookie(resp, TOKEN_COOKIE_NAME, access_token, lifetime)
-    # set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, refresh_token, lifetime)
+    user_patreon_id = user_data.id
+    user = None
+    ## ensure user for forgesteel patrons
+    if user_patreon_id is not None \
+            and user_data.forgesteel is not None \
+            and user_data.forgesteel.patron is True:
+        user = User.find_by_patreon_id(user_patreon_id)
+
+        if user is None:
+            new_user = User(name=user_data.email)
+            new_user.patreon_email = user_data.email
+            new_user.patreon_id = user_patreon_id
+            db.session.add(new_user)
+            db.session.commit()
+            user = new_user
+        
+        wh_access_token = create_access_token(identity=user)
+        wh_refresh_token = create_refresh_token(identity=user)
+        set_access_cookies(resp, wh_access_token)
+        set_refresh_cookies(resp, wh_refresh_token)
 
     return resp
 

@@ -2,6 +2,7 @@ from datetime import date
 from unittest.mock import MagicMock
 
 from flask.testing import FlaskClient
+from requests import HTTPError
 from forgesteel_warehouse import db
 from forgesteel_warehouse.models import User
 from forgesteel_warehouse.resources.token_handler import TEMP_LOGIN_COOKIE_NAME, TOKEN_COOKIE_NAME, TOKEN_REFRESH_COOKIE_NAME
@@ -273,3 +274,45 @@ def test_logout_deletes_cookies(client: FlaskClient, patreon_api: MagicMock):
     assert response.status_code == 204
     assert client.get_cookie(TOKEN_COOKIE_NAME) is None
     assert client.get_cookie(TOKEN_REFRESH_COOKIE_NAME) is None
+
+def test_get_session_returns_properly_when_no_cookies(client: FlaskClient, patreon_api: MagicMock):
+    response = client.get('/th/session')
+    
+    assert response.status_code == 200
+    assert response.json is not None
+    assert response.json['authenticated_with_patreon'] == False
+    assert response.json['user'] == None
+
+def test_get_session_returns_properly_when_unauthorized(client: FlaskClient, patreon_api: MagicMock):
+    client.set_cookie(TOKEN_COOKIE_NAME, 'invalid-token')
+    client.set_cookie(TOKEN_REFRESH_COOKIE_NAME, 'refresh-token')
+
+    patreon_api.get_identity.side_effect = HTTPError('Unauthorized')
+
+    response = client.get('/th/session')
+    
+    assert response.status_code == 200
+    assert response.json is not None
+    assert response.json['authenticated_with_patreon'] == False
+    assert response.json['user'] == None
+
+def test_get_session_returns_properly_when_authorized(client: FlaskClient, patreon_api: MagicMock):
+    client.set_cookie(TOKEN_COOKIE_NAME, 'valid-token')
+    client.set_cookie(TOKEN_REFRESH_COOKIE_NAME, 'refresh-token')
+
+    user_patreon_id = '12345678'
+    user_patreon_email = 'test@email.com'
+    mock_user_data = PatreonUser(
+            id=user_patreon_id,
+            email=user_patreon_email,
+            forgesteel=PatronState(patron=False)
+        )
+    patreon_api.get_identity.return_value = mock_user_data
+
+    response = client.get('/th/session')
+    
+    assert response.status_code == 200
+    assert response.json is not None
+    assert response.json['authenticated_with_patreon'] == True
+    assert response.json['user'] is not None
+    assert response.json['user']['id'] == user_patreon_id

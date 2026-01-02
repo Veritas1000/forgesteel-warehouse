@@ -5,6 +5,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from requests import HTTPError
 from forgesteel_warehouse.utils.patreon_api import PatreonApi
 
 
@@ -72,11 +73,12 @@ def test_get_token_code_error(mock_post):
         "error": "invalid_grant",
         "error_description": "Invalid 'code' in request."
     }
+    mock_response.raise_for_status.side_effect = HTTPError('Error from patreon')
 
     api = PatreonApi()
     code = 'a_bad_code'
     redirect = 'http://some.redirect:8080/uri/#/with/hash'
-    with pytest.raises(Exception, match="Invalid 'code'"):
+    with pytest.raises(HTTPError, match="Error from patreon"):
         api.get_token(code, redirect)
 
 @patch('requests.post')
@@ -84,11 +86,12 @@ def test_get_token_other_error(mock_post):
     mock_response = mock_post.return_value
     mock_response.ok = False
     mock_response.status_code = 500
+    mock_response.raise_for_status.side_effect = HTTPError('Error from patreon')
 
     api = PatreonApi()
     code = 'a_bad_code'
     redirect = 'http://some.redirect:8080/uri/#/with/hash'
-    with pytest.raises(Exception, match="Error communicating with Patreon"):
+    with pytest.raises(HTTPError, match="Error from patreon"):
         api.get_token(code, redirect)
 
 @patch('requests.post')
@@ -130,9 +133,10 @@ def test_refresh_token_code_error(mock_post):
         "error": "invalid_grant",
         "error_description": "Invalid 'code' in request."
     }
+    mock_response.raise_for_status.side_effect = HTTPError('Error from patreon')
 
     api = PatreonApi()
-    with pytest.raises(Exception, match="Invalid 'code'"):
+    with pytest.raises(HTTPError, match="Error from patreon"):
         api.refresh_token('qwerty_9876')
 
 @patch('requests.post')
@@ -140,9 +144,10 @@ def test_refresh_token_other_error(mock_post):
     mock_response = mock_post.return_value
     mock_response.ok = False
     mock_response.status_code = 500
+    mock_response.raise_for_status.side_effect = HTTPError('Error from patreon')
 
     api = PatreonApi()
-    with pytest.raises(Exception, match="Error communicating with Patreon"):
+    with pytest.raises(HTTPError, match="Error from patreon"):
         api.refresh_token('qwerty_9876')
 
 def test__parse_identity_response_mcdm_patron():
@@ -282,8 +287,9 @@ def test_get_identity_error(mock_get):
     mock_response = mock_get.return_value
     mock_response.ok = False
     mock_response.status_code = 500
+    mock_response.raise_for_status.side_effect = HTTPError('Error from patreon')
 
     token = 'accessToken123'
     api = PatreonApi()
-    with pytest.raises(Exception, match="Error communicating with Patreon"):
+    with pytest.raises(HTTPError, match="Error from patreon"):
         api.get_identity(token)

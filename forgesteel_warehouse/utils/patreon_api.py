@@ -69,25 +69,13 @@ class PatreonApi:
             },
             timeout = 10
         )
+        response.raise_for_status()
 
-        if response.ok:
-            tokens = response.json()
-            access_token = tokens['access_token']
-            refresh_token = tokens['refresh_token']
-            lifetime = tokens['expires_in']
-            return access_token, refresh_token, lifetime
-        else:
-            msg = self._get_error_msg(response)
-            raise Exception(f"Error communicating with Patreon: {msg}")
-
-    def _get_error_msg(self, response):
-        err = response.json()
-        msg = 'Unknown error'
-        if 'error_description' in err:
-            msg = err['error_description']
-        elif 'title' in err:
-            msg = err['title']
-        return msg
+        tokens = response.json()
+        access_token = tokens['access_token']
+        refresh_token = tokens['refresh_token']
+        lifetime = tokens['expires_in']
+        return access_token, refresh_token, lifetime
 
     def refresh_token(self, refresh_token):
         response = requests.post(
@@ -103,16 +91,13 @@ class PatreonApi:
             },
             timeout = 10
         )
+        response.raise_for_status()
 
-        if response.ok:
-            tokens = response.json()
-            access_token = tokens['access_token']
-            refresh_token = tokens['refresh_token']
-            lifetime = tokens['expires_in']
-            return access_token, refresh_token, lifetime
-        else:
-            msg = self._get_error_msg(response)
-            raise Exception(f"Error communicating with Patreon: {msg}")
+        tokens = response.json()
+        access_token = tokens['access_token']
+        refresh_token = tokens['refresh_token']
+        lifetime = tokens['expires_in']
+        return access_token, refresh_token, lifetime
 
     def get_identity(self, access_token):
         response = requests.get(
@@ -129,13 +114,10 @@ class PatreonApi:
             },
             timeout = 10
         )
+        response.raise_for_status()
 
-        if response.ok:
-            identity = response.json()
-            return self._parse_identity_response(identity)
-        else:
-            msg = self._get_error_msg(response)
-            raise Exception(f"Error communicating with Patreon: {msg}")
+        identity = response.json()
+        return self._parse_identity_response(identity)
 
     def _parse_identity_response(self, identity_json):
         patreon_id = None
