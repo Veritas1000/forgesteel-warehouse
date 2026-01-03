@@ -14,7 +14,7 @@ from forgesteel_warehouse.models import User
 def app():
     test_config = {
         'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:'
     }
     app = init_app(test_config)
     

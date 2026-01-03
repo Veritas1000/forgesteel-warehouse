@@ -316,3 +316,40 @@ def test_get_session_returns_properly_when_authorized(client: FlaskClient, patre
     assert response.json['authenticated_with_patreon'] == True
     assert response.json['user'] is not None
     assert response.json['user']['id'] == user_patreon_id
+    
+    ## NON-patron, so shouldn't be cookies
+    token_cookie = client.get_cookie('JWT_ACCESS_COOKIE')
+    assert token_cookie is None
+    refresh_cookie = client.get_cookie('JWT_REFRESH_COOKIE')
+    assert refresh_cookie is None
+    csrf_cookie = client.get_cookie('JWT_ACCESS_CSRF_COOKIE')
+    assert csrf_cookie is None
+
+def test_get_session_sets_auth_cookies_for_patrons(cookie_check_client: FlaskClient, patreon_api: MagicMock):
+    cookie_check_client.set_cookie(TOKEN_COOKIE_NAME, 'valid-token')
+    cookie_check_client.set_cookie(TOKEN_REFRESH_COOKIE_NAME, 'refresh-token')
+
+    user_patreon_id = '12345678'
+    user_patreon_email = 'test@email.com'
+    mock_user_data = PatreonUser(
+            id=user_patreon_id,
+            email=user_patreon_email,
+            forgesteel=PatronState(patron=True)
+        )
+    patreon_api.get_identity.return_value = mock_user_data
+
+    response = cookie_check_client.get('/th/session')
+    
+    assert response.status_code == 200
+    assert response.json is not None
+    assert response.json['authenticated_with_patreon'] == True
+    assert response.json['user'] is not None
+    assert response.json['user']['id'] == user_patreon_id
+
+    ## Verify cookies
+    token_cookie = cookie_check_client.get_cookie('JWT_ACCESS_COOKIE')
+    assert token_cookie is not None
+    refresh_cookie = cookie_check_client.get_cookie('JWT_REFRESH_COOKIE')
+    assert refresh_cookie is not None
+    csrf_cookie = cookie_check_client.get_cookie('JWT_ACCESS_CSRF_COOKIE')
+    assert csrf_cookie is not None
