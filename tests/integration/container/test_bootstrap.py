@@ -1,4 +1,3 @@
-import os
 import re
 import tempfile
 
@@ -33,3 +32,12 @@ def test_bootstrap_doesnt_regenerate_default_user_key_multiple_runs(app_image):
             log = stdout_bytes.decode() if stdout_bytes else ""
 
             assert 'USER CREATED' not in log
+
+def test_bootstrap_can_be_bypassed(app_image):
+    container = DockerContainer(str(app_image), ports=[5000], _wait_strategy=HttpWaitStrategy(5000, "/healthz"))
+    container.with_env('SKIP_BOOTSTRAP', 'True')
+    with container:
+        stdout_bytes, stderr_bytes = container.get_logs()
+        log = stdout_bytes.decode() if stdout_bytes else ""
+
+        assert 'USER CREATED' not in log

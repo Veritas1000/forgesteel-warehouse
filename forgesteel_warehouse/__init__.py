@@ -48,11 +48,11 @@ def init_app(app_config=None):
     ## If no passed in config, but a config path is set, load config
     config_path = os.getenv('FSW_CONFIG_PATH')
     if app_config is None and config_path is not None:
-        with open(config_path, 'r', encoding='utf-8') as config_file:
-            try:
+        try:
+            with open(config_path, 'r', encoding='utf-8') as config_file:
                 app_config = json.load(config_file)
-            except:
-                app_config = None
+        except:
+            app_config = None
 
     ## Prioritize passed in config over all
     if app_config:

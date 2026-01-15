@@ -33,6 +33,11 @@ def test_bootstrap_creates_config_if_none(temp_config_file):
         
         assert os.path.exists(temp_config_file)
 
+def test_bootstrap_doesnt_create_if_skipped(temp_config_file):
+        assert not os.path.exists(temp_config_file)
+        create_or_load_config(True)
+        assert not os.path.exists(temp_config_file)
+
 def test_bootstrap_writes_secrets_if_none(temp_config_file):
         config = {
              'FOO': 'bar'

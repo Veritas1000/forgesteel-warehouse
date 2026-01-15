@@ -15,40 +15,45 @@ def add_default_user(app):
     return create_user(app, 'default_user')
 
 def bootstrap():
-    config = create_or_load_config()
+    skip = os.getenv('SKIP_BOOTSTRAP', 'False').lower() in ('true', '1', 't')
+
+    config = create_or_load_config(skip)
     ## Initialize the DB
     app = init_app(config)
     with app.app_context():
         upgrade()
-        ## Check if any user exists
-        num_users = db.session.execute(func.count(User.id)).scalar()
-        if num_users == 0:
-            ## If the user does not exist, create the default user
-            user_key = add_default_user(app)
-            print_key(user_key)
+        if not skip:
+            ## Check if any user exists
+            num_users = db.session.execute(func.count(User.id)).scalar()
+            if num_users == 0:
+                ## If the user does not exist, create the default user
+                user_key = add_default_user(app)
+                print_key(user_key)
 
-def create_or_load_config():
+def create_or_load_config(skip_create: bool = False):
     load_dotenv()
     config_path = os.getenv('FSW_CONFIG_PATH', '/data/config.json')
     changed = False
 
     try:
-        with open(config_path, 'a+', encoding='utf-8') as config_file:
+        mode = 'r' if skip_create else 'a+'
+        with open(config_path, mode, encoding='utf-8') as config_file:
             config_file.seek(0)
             config = json.load(config_file)
-    except Exception:
+    except:
         config = {}
 
-    if 'SECRET_KEY' not in config:
-        config['SECRET_KEY'] = secrets.token_hex(64)
-        changed = True
-    if 'JWT_SECRET_KEY' not in config:
-        config['JWT_SECRET_KEY'] = secrets.token_hex(64)
-        changed = True
+    if not skip_create:
+        if 'SECRET_KEY' not in config:
+            config['SECRET_KEY'] = secrets.token_hex(64)
+            changed = True
+        if 'JWT_SECRET_KEY' not in config:
+            config['JWT_SECRET_KEY'] = secrets.token_hex(64)
+            changed = True
 
-    if changed:
-        with open(config_path, 'w', encoding='utf-8') as config_file:
-            json.dump(config, config_file, ensure_ascii=False, indent=4)
+        if changed:
+            with open(config_path, 'w', encoding='utf-8') as config_file:
+                json.dump(config, config_file, ensure_ascii=False, indent=4)
 
     return config
 
