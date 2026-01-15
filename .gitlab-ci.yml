@@ -65,6 +65,10 @@ unit-tests:
 integration-tests:
   stage: test
   image: ubuntu:24.04
+  variables:
+    TESTCONTAINERS_PULL_TIMEOUT: 300
+    TESTCONTAINERS_TIMEOUT: 300
+  retry: 1
   services:
     - docker:28.5.1-dind
   before_script:
