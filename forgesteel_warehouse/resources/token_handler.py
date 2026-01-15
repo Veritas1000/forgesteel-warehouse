@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from flask import Blueprint, Response, jsonify, make_response, request
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies
 
 from forgesteel_warehouse import db
@@ -44,6 +44,7 @@ def get_patreon_info_and_make_response(access_token):
     if user_patreon_id is not None \
             and user_data.forgesteel is not None \
             and user_data.forgesteel.patron is True:
+        log.debug('User has patron access')
         user = User.find_by_patreon_id(user_patreon_id)
 
         if user is None:
@@ -62,22 +63,26 @@ def get_patreon_info_and_make_response(access_token):
     return resp
 
 def set_th_cookie(resp: Response, name: str, value: str, max_age: int):
-    ## TODO: enable samesite once co-hosted with app
-    ##       might also be able to remove partitioned then
+    secure = current_app.config['JWT_COOKIE_SECURE']
+    same_site = current_app.config['JWT_COOKIE_SAMESITE']
+    domain = current_app.config['JWT_COOKIE_DOMAIN']
+
+    log.debug(f"Cookie settings: secure={secure} same_site={same_site} domain={domain}")
+    
     if max_age > 0:
         resp.set_cookie(name, value,
                         max_age=max_age,
                         httponly=True,
-                        samesite='None',
-                        secure=True,
-                        partitioned=True)
+                        samesite=same_site,
+                        domain=domain,
+                        secure=secure)
     else:
         resp.set_cookie(name, value,
                         expires=0,
                         httponly=True,
-                        samesite='None',
-                        secure=True,
-                        partitioned=True)
+                        samesite=same_site,
+                        domain=domain,
+                        secure=secure)
 
 ## Start the login process
 ## Returns the OAuth login url
@@ -95,7 +100,6 @@ def login_start():
     resp = make_response(jsonify({'authorizationUrl': url}))
     
     set_th_cookie(resp, TEMP_LOGIN_COOKIE_NAME, state, 600)
-    # resp.set_cookie(TEMP_LOGIN_COOKIE_NAME, state, max_age=600, httponly=True, samesite='None', secure=True, partitioned=True)
 
     return resp
 
@@ -114,7 +118,12 @@ def login_end():
     temp_cookie = request.cookies.get(TEMP_LOGIN_COOKIE_NAME)
 
     if (temp_cookie != state):
-        msg = 'Missing login state cookie' if temp_cookie is None else 'Incorrect login state cookie'
+        msg = 'Incorrect login state cookie'
+        if temp_cookie is None:
+            msg = 'Missing login state cookie'
+        else:
+            log.debug(f"state started {temp_cookie[0:10]}")
+
         log.warning(msg)
         return make_response(jsonify({'message': 'Invalid Authorization request'}), 400)
 
