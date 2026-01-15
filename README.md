@@ -227,14 +227,15 @@ flask --app 'forgesteel_warehouse:init_app()' db migrate -m "Some migration deta
 
 ### Dependency upgrade
 
+- Make sure `pip-tools` is installed
 - Update python dependencies
 ```bash
-pip install --upgrade -r requirements.txt
+pip install --upgrade -r requirements.in
 ```
 - run tests, verify, etc
 - freeze deps
 ```bash
-python -m pip freeze > requirements.txt
+pip-compile requirements.in
 ```
 
 ### Version bump

@@ -1,0 +1,17 @@
+argon2-cffi
+bcrypt
+Flask
+flask-cors
+Flask-JWT-Extended
+Flask-Migrate
+Flask-SQLAlchemy
+gunicorn
+httpx
+parameterized
+psycopg2-binary
+pytest
+pytest-cov
+python-dotenv
+requests
+SQLAlchemy
+testcontainers
