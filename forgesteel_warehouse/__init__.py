@@ -39,7 +39,7 @@ def init_app(app_config=None):
     app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
     
     app.config['JWT_COOKIE_CSRF_PROTECT'] = True
-    app.config['JWT_CSRF_METHODS'] = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    app.config['JWT_CSRF_METHODS'] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
     app.config['JWT_COOKIE_SECURE'] = os.getenv('JWT_COOKIE_SECURE', 'True').lower() in ('true', '1', 't')
     app.config['JWT_COOKIE_SAMESITE'] = os.getenv('JWT_COOKIE_SAMESITE', 'Strict')
     app.config['JWT_COOKIE_DOMAIN'] = os.getenv('JWT_COOKIE_DOMAIN', None)

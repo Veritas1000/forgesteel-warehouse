@@ -18,6 +18,7 @@ def cookie_check_client():
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'JWT_ACCESS_COOKIE_NAME': 'JWT_ACCESS_COOKIE',
         'JWT_REFRESH_COOKIE_NAME': 'JWT_REFRESH_COOKIE',
+        'JWT_COOKIE_DOMAIN': None,
         'JWT_ACCESS_CSRF_COOKIE_NAME': 'JWT_ACCESS_CSRF_COOKIE'
     }
     app = init_app(test_config)
