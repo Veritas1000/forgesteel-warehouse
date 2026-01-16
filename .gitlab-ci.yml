@@ -15,6 +15,9 @@ variables:
   TZ: America/New_York
   DOCKER_TLS_CERTDIR: "/certs"
   AST_ENABLE_MR_PIPELINES: true
+  DOCKER_EXECUTOR_VERSION: '28' # testcontainers doesn't work with docker 29 yet, stick with 28
+  DOCKER_PACKAGE_VERSION: '5:28.5.2-1~ubuntu.24.04~noble'
+  DOCTL_VERSION: '1.148.0'
 
 include:
 - template: Jobs/SAST.gitlab-ci.yml
@@ -44,8 +47,15 @@ include:
     EOF
   - apt-get update
   - apt list -a docker-ce
-  - apt-get install -y docker-ce=5:28.5.1-1~ubuntu.24.04~noble docker-ce-cli=5:28.5.1-1~ubuntu.24.04~noble containerd.io docker-buildx-plugin docker-compose-plugin
+  - apt-get install -y docker-ce="${DOCKER_PACKAGE_VERSION}" docker-ce-cli="${DOCKER_PACKAGE_VERSION}" containerd.io docker-buildx-plugin docker-compose-plugin
   - nohup dockerd >/dev/null 2>&1 &
+  - docker --version
+
+.doctl_setup: &doctl_setup
+  - apk --no-cache add curl
+  - curl -Lo doctl.tar.gz "https://github.com/digitalocean/doctl/releases/download/v${DOCTL_VERSION}/doctl-${DOCTL_VERSION}-linux-amd64.tar.gz" && tar xf doctl.tar.gz
+  - chmod u+x doctl
+  - mv doctl /usr/local/bin/doctl
 
 unit-tests:
   stage: test
@@ -70,7 +80,7 @@ integration-tests:
     TESTCONTAINERS_TIMEOUT: 300
   retry: 1
   services:
-    - docker:28.5.1-dind
+    - "docker:${DOCKER_EXECUTOR_VERSION}-dind"
   before_script:
     - *python_setup
     - *docker_setup
@@ -118,9 +128,9 @@ setup-buildenv:
 
 build-container:
   stage: build
-  image: docker:28.5.1-cli
+  image: "docker:${DOCKER_EXECUTOR_VERSION}-cli"
   services:
-    - docker:28.5.1-dind
+    - "docker:${DOCKER_EXECUTOR_VERSION}-dind"
   needs: 
     - setup-buildenv
   before_script:
@@ -142,9 +152,9 @@ build-container:
 
 publish-container:
   stage: publish
-  image: docker:28.5.1-cli
+  image: "docker:${DOCKER_EXECUTOR_VERSION}-cli"
   services:
-    - docker:28.5.1-dind
+    - "docker:${DOCKER_EXECUTOR_VERSION}-dind"
   needs:
     - setup-buildenv
     - build-container
@@ -165,3 +175,24 @@ publish-container:
     - docker tag $INTERNAL_IMAGE $PUBLIC_IMAGE
     - docker push $PUBLIC_IMAGE
     - docker push $PUBLIC_LATEST
+
+publish-to-docr:
+  stage: publish
+  image: "docker:${DOCKER_EXECUTOR_VERSION}-cli"
+  services:
+    - "docker:${DOCKER_EXECUTOR_VERSION}-dind"
+  needs: 
+    - setup-buildenv
+    - build-container
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  before_script:
+    - *doctl_setup
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - doctl registry login --expiry-seconds 600
+    - export INTERNAL_IMAGE="$CI_REGISTRY_IMAGE:$VERSION"
+    - export DOCR_IMAGE="registry.digitalocean.com/forgesteel-fork-test/forgesteel-warehouse:latest"
+  script:
+    - docker pull $INTERNAL_IMAGE
+    - docker tag $INTERNAL_IMAGE $DOCR_IMAGE
+    - docker push $DOCR_IMAGE

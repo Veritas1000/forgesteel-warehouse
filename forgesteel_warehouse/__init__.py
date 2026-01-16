@@ -32,17 +32,23 @@ def init_app(app_config=None):
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'test-jwt-secret-key-change-in-prod')
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'test-secret-key-change-in-prod')
     
-    app.config['SESSION_COOKIE_SECURE'] = True
+    ## Cookie config
+    cookies_secure = os.getenv('COOKIE_SECURE', 'True').lower() in ('true', '1', 't')
+    cookies_samesite = os.getenv('COOKIE_SAMESITE', 'Lax')
+    cookies_domain = os.getenv('COOKIE_DOMAIN', None)
+
     app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
+    app.config['SESSION_COOKIE_SECURE'] = cookies_secure
+    app.config['SESSION_COOKIE_SAMESITE'] = cookies_samesite
+    app.config['SESSION_COOKIE_DOMAIN'] = cookies_domain
     
     app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
     
     app.config['JWT_COOKIE_CSRF_PROTECT'] = True
     app.config['JWT_CSRF_METHODS'] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-    app.config['JWT_COOKIE_SECURE'] = os.getenv('JWT_COOKIE_SECURE', 'True').lower() in ('true', '1', 't')
-    app.config['JWT_COOKIE_SAMESITE'] = os.getenv('JWT_COOKIE_SAMESITE', 'Strict')
-    app.config['JWT_COOKIE_DOMAIN'] = os.getenv('JWT_COOKIE_DOMAIN', None)
+    app.config['JWT_COOKIE_SECURE'] = cookies_secure
+    app.config['JWT_COOKIE_SAMESITE'] = cookies_samesite
+    app.config['JWT_COOKIE_DOMAIN'] = cookies_domain
 
     app.config['LOG_LEVEL'] = os.getenv('LOG_LEVEL', 'ERROR')
 

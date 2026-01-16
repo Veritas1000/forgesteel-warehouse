@@ -21,13 +21,18 @@ TOKEN_REFRESH_COOKIE_NAME = 'fs-th-refresh-token'
 def get_session():
     token = request.cookies.get(TOKEN_COOKIE_NAME)
 
-    try:
-        return get_patreon_info_and_make_response(token)
-    except:
-        return make_response(jsonify({
-            'authenticated_with_patreon': False,
-            'user': None
-        }))
+    if token is not None:
+        try:
+            return get_patreon_info_and_make_response(token)
+        except Exception as e:
+            log.warning(f"problem getting patreon info: {e}")
+            if token is not None:
+                log.debug(f"token started {token[0:5]}")
+
+    return make_response(jsonify({
+        'authenticated_with_patreon': False,
+        'user': None
+    }))
 
 def get_patreon_info_and_make_response(access_token):
     patreon_api = PatreonApi()
@@ -39,6 +44,7 @@ def get_patreon_info_and_make_response(access_token):
     }))
 
     user_patreon_id = user_data.id
+    log.debug(f"User patreon id is {user_patreon_id}")
     user = None
     ## ensure user for forgesteel patrons
     if user_patreon_id is not None \
@@ -48,6 +54,7 @@ def get_patreon_info_and_make_response(access_token):
         user = User.find_by_patreon_id(user_patreon_id)
 
         if user is None:
+            log.debug('Creating user')
             new_user = User(name=user_data.email)
             new_user.patreon_email = user_data.email
             new_user.patreon_id = user_patreon_id
@@ -68,7 +75,8 @@ def set_th_cookie(resp: Response, name: str, value: str, max_age: int):
     domain = current_app.config['JWT_COOKIE_DOMAIN']
 
     log.debug(f"Cookie settings: secure={secure} same_site={same_site} domain={domain}")
-    
+    log.debug(f"Setting [{name}] to [{value[0:5]}...]")
+
     if max_age > 0:
         resp.set_cookie(name, value,
                         max_age=max_age,

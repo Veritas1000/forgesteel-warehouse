@@ -1,7 +1,5 @@
-import re
 import tempfile
 
-import pytest
 import requests
 from testcontainers.generic import ServerContainer
 from testcontainers.core.wait_strategies import HttpWaitStrategy
@@ -11,7 +9,7 @@ from tests.integration.utils import get_api_token, get_csrf_access_token_from_re
 ## Tests the 'upgrade path' from the latest public image to the current state
 def test_app_upgrade_path_latest(app_image):
     with tempfile.TemporaryDirectory() as temp_directory:
-        public_container = ServerContainer(port=5000, image='veritas1000/forgesteel-warehouse:latest')
+        public_container = ServerContainer(port=5000, image='docker.io/veritas1000/forgesteel-warehouse:latest')
         public_container.with_env('JWT_COOKIE_SECURE', 'False')
         public_container.with_volume_mapping(temp_directory, "/data", "rw")
         public_container.waiting_for(HttpWaitStrategy(5000, "/healthz"))
@@ -43,7 +41,7 @@ def test_app_upgrade_path_latest(app_image):
             assert get_req.json()['data'] == test_data
 
         latest_container = ServerContainer(port=5000, image=app_image)
-        latest_container.with_env('JWT_COOKIE_SECURE', 'False')
+        latest_container.with_env('COOKIE_SECURE', 'False')
         latest_container.with_volume_mapping(temp_directory, "/data", "rw")
         latest_container.waiting_for(HttpWaitStrategy(5000, "/healthz"))
 
@@ -96,7 +94,7 @@ def test_app_upgrade_path_pre_1_0(app_image):
             assert get_req.json()['data'] == test_data
 
         latest_container = ServerContainer(port=5000, image=app_image)
-        latest_container.with_env('JWT_COOKIE_SECURE', 'False')
+        latest_container.with_env('COOKIE_SECURE', 'False')
         latest_container.with_volume_mapping(temp_directory, "/data", "rw")
         latest_container.waiting_for(HttpWaitStrategy(5000, "/healthz"))
 
