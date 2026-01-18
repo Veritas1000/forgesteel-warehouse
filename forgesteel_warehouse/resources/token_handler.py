@@ -1,29 +1,39 @@
 import logging
 import os
 import uuid
+
 from flask import Blueprint, Response, current_app, jsonify, make_response, request
-from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    current_user,
+    jwt_required,
+    set_access_cookies,
+    set_refresh_cookies,
+)
+from requests import HTTPError
 
 from forgesteel_warehouse import db
 from forgesteel_warehouse.models import User
 from forgesteel_warehouse.utils.patreon_api import PatreonApi
+from forgesteel_warehouse.utils.patreon_logic import has_warehouse_access
 
 token_handler = Blueprint('token_handler', __name__)
 
 log = logging.getLogger(__name__)
 
 TEMP_LOGIN_COOKIE_NAME = 'fs-th-login-temp'
-TOKEN_COOKIE_NAME = 'fs-th-token'
-TOKEN_REFRESH_COOKIE_NAME = 'fs-th-refresh-token'
+
 
 ## Gets the current session, if present
-@token_handler.get('/th/session')
+@token_handler.get("/th/session")
+@jwt_required(optional=True)
 def get_session():
-    token = request.cookies.get(TOKEN_COOKIE_NAME)
-
-    if token is not None:
+    if current_user:
+        token = current_user.get_patreon_access_token()
+        refresh_token = current_user.get_patreon_refresh_token()
         try:
-            return get_patreon_info_and_make_response(token)
+            return get_patreon_info_and_make_response(token, refresh_token)
         except Exception as e:
             log.warning(f"problem getting patreon info: {e}")
             if token is not None:
@@ -34,38 +44,58 @@ def get_session():
         'user': None
     }))
 
-def get_patreon_info_and_make_response(access_token):
+def get_patreon_info_and_make_response(access_token, refresh_token, update_tokens=False):
     patreon_api = PatreonApi()
-    user_data = patreon_api.get_identity(access_token)
+    authenticated = False
+    user_data = None
+    refreshed_tokens = None
+
+    try:
+        user_data = patreon_api.get_identity(access_token)
+        authenticated = True
+    except HTTPError as e:
+        if e.response.status_code == 401:
+            refreshed_tokens = patreon_api.refresh_token(refresh_token)
+            user_data = patreon_api.get_identity(refreshed_tokens[0])
+            authenticated = True
+        else:
+            raise e
 
     resp = make_response(jsonify({
-        'authenticated_with_patreon': True,
+        'authenticated_with_patreon': authenticated,
         'user': user_data
     }))
 
-    user_patreon_id = user_data.id
-    log.debug(f"User patreon id is {user_patreon_id}")
-    user = None
-    ## ensure user for forgesteel patrons
-    if user_patreon_id is not None \
-            and user_data.forgesteel is not None \
-            and user_data.forgesteel.patron is True:
-        log.debug('User has patron access')
-        user = User.find_by_patreon_id(user_patreon_id)
+    if refreshed_tokens is not None:
+        update_tokens = True
+        access_token, refresh_token, lifetime = refreshed_tokens
 
-        if user is None:
-            log.debug('Creating user')
-            new_user = User(name=user_data.email)
-            new_user.patreon_email = user_data.email
-            new_user.patreon_id = user_patreon_id
-            db.session.add(new_user)
-            db.session.commit()
-            user = new_user
-        
-        wh_access_token = create_access_token(identity=user)
-        wh_refresh_token = create_refresh_token(identity=user)
-        set_access_cookies(resp, wh_access_token)
-        set_refresh_cookies(resp, wh_refresh_token)
+    if user_data is not None:
+        user_patreon_id = user_data.id
+        log.debug(f"User patreon id is {user_patreon_id}")
+        user = None
+        ## ensure user for forgesteel patrons
+        if user_patreon_id is not None:
+            user = User.find_by_patreon_id(user_patreon_id)
+
+            if user is None:
+                log.debug('Creating user')
+                new_user = User(name=user_data.email)
+                new_user.patreon_email = user_data.email
+                new_user.patreon_id = user_patreon_id
+                new_user.set_patreon_access_token(access_token)
+                new_user.set_patreon_refresh_token(refresh_token)
+                db.session.add(new_user)
+                db.session.commit()
+                user = new_user
+            elif update_tokens:
+                user.set_patreon_access_token(access_token)
+                user.set_patreon_refresh_token(refresh_token)
+                db.session.commit()
+
+            if has_warehouse_access(user_data):
+                set_access_cookies(resp, create_access_token(identity=user))
+                set_refresh_cookies(resp, create_refresh_token(identity=user))
 
     return resp
 
@@ -136,14 +166,12 @@ def login_end():
         return make_response(jsonify({'message': 'Invalid Authorization request'}), 400)
 
     redirect_url = os.getenv('PATREON_OAUTH_REDIRECT_URI')
-    
+
     patreon_api = PatreonApi()
     try:
         access_token, refresh_token, lifetime = patreon_api.get_token(code, redirect_url)
-        resp = get_patreon_info_and_make_response(access_token)
+        resp = get_patreon_info_and_make_response(access_token, refresh_token, update_tokens=True)
 
-        set_th_cookie(resp, TOKEN_COOKIE_NAME, access_token, lifetime)
-        set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, refresh_token, lifetime)
         set_th_cookie(resp, TEMP_LOGIN_COOKIE_NAME, '', 0)
 
         return resp
@@ -155,25 +183,36 @@ def login_end():
 
         return make_response(jsonify(body), 400)
 
+
 ## Refresh current access token and rewrite secure cookies
-@token_handler.post('/th/refresh')
+@token_handler.post("/th/refresh")
+@jwt_required()
 def refresh():
-    refresh_token = request.cookies.get(TOKEN_REFRESH_COOKIE_NAME)
     patreon_api = PatreonApi()
 
-    access_token, refresh_token, lifetime = patreon_api.refresh_token(refresh_token)
-    
-    resp = make_response(jsonify(), 204)
-    set_th_cookie(resp, TOKEN_COOKIE_NAME, access_token, lifetime)
-    set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, refresh_token, lifetime)
+    refresh_token = current_user.get_patreon_refresh_token()
+    access_token, new_refresh_token, lifetime = patreon_api.refresh_token(refresh_token)
 
-    return resp
+    user = User.find_by_patreon_id(current_user.patreon_id)
+    if user is None:
+        return make_response(jsonify(message="Problem getting user"), 400)
+    
+    user.set_patreon_access_token(access_token)
+    user.set_patreon_refresh_token(new_refresh_token)
+
+    db.session.commit()
+    db.session.flush()
+    return make_response(jsonify(), 204)
+
 
 ## Delete cookies
-@token_handler.post('/th/logout')
+@token_handler.post("/th/logout")
+@jwt_required()
 def logout():
-    resp = make_response(jsonify(), 204)
-    set_th_cookie(resp, TOKEN_COOKIE_NAME, '', 0)
-    set_th_cookie(resp, TOKEN_REFRESH_COOKIE_NAME, '', 0)
+    current_user.set_patreon_access_token(None)
+    current_user.set_patreon_refresh_token(None)
 
-    return resp
+    db.session.commit()
+    db.session.flush()
+
+    return make_response(jsonify(), 204)

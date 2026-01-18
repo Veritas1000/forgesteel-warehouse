@@ -1,10 +1,10 @@
-
-from dataclasses import dataclass, field
-from datetime import date, datetime
 import logging
 import os
+from dataclasses import dataclass, field
+from datetime import date, datetime
 from typing import List
 from urllib.parse import urlencode
+
 import requests
 
 log = logging.getLogger(__name__)
@@ -18,6 +18,29 @@ log = logging.getLogger(__name__)
 # requests_log = logging.getLogger("requests.packages.urllib3")
 # requests_log.setLevel(logging.DEBUG)
 # requests_log.propagate = True
+
+
+@dataclass
+class PatronTier:
+    id: str
+    title: str
+
+
+@dataclass
+class PatronState:
+    patron: bool = False
+    tiers: List[PatronTier] = field(default_factory=lambda: [])
+    tier_cents: int = 0
+    start: date | None = None
+
+
+@dataclass
+class PatreonUser:
+    id: str | None = None
+    email: str | None = None
+    forgesteel: PatronState | None = None
+    mcdm: PatronState | None = None
+
 
 class PatreonApi:
     _requested_token_scopes = [
@@ -143,7 +166,7 @@ class PatreonApi:
                                         and 'id' in inc['relationships']['campaign']['data'],
                                         identity_json['included'])
                                     )
-            
+
             tiers = list(filter(lambda inc: inc['type'] == 'tier',
                                 identity_json['included'])
                             )
@@ -158,14 +181,14 @@ class PatreonApi:
             forgesteel=forgesteel_state,
             mcdm=mcdm_state
         )
-    
+
     def _get_patron_state(self, campaign_id, memberships, all_tiers):
         patron_state = PatronState()
-        
+
         for membership in memberships:
             if membership['relationships']['campaign']['data']['id'] == campaign_id:
                 patron_state.patron = membership['attributes']['patron_status'] == 'active_patron'
-                
+
                 if patron_state.patron:
                     tiers = list(t['id'] for t in membership['relationships']['currently_entitled_tiers']['data'])
                     patron_state.tiers = list(map(lambda t: PatronTier(id=t, title=all_tiers.get(t)), tiers))
@@ -173,22 +196,3 @@ class PatreonApi:
                     patron_state.start = datetime.fromisoformat(membership['attributes']['pledge_relationship_start']).date()
 
         return patron_state
-
-@dataclass
-class PatronTier:
-    id: str
-    title: str
-
-@dataclass
-class PatronState:
-    patron: bool = False
-    tiers: List[PatronTier] = field(default_factory=lambda: [])
-    tier_cents: int = 0
-    start: date | None = None
-
-@dataclass
-class PatreonUser:
-    id: str | None = None
-    email: str | None = None
-    forgesteel: PatronState | None = None
-    mcdm: PatronState | None = None

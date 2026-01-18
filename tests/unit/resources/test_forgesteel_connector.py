@@ -20,6 +20,14 @@ def test_connect_returns_200_with_good_token(client, test_user_token):
     assert response.json['refresh_token'] is not None
     assert response.json['access_token'] != response.json['refresh_token']
 
+    ## Verify cookies
+    token_cookie = client.get_cookie("jwt_access_cookie_name")
+    assert token_cookie is not None
+    refresh_cookie = client.get_cookie("jwt_refresh_cookie_name")
+    assert refresh_cookie is not None
+    csrf_cookie = client.get_cookie("jwt_access_csrf_cookie_name")
+    assert csrf_cookie is not None
+
 def test_refresh_without_token(client, test_user):
     response = client.post('/refresh')
     assert response.status_code == 401
@@ -50,7 +58,7 @@ def test_refresh_with_good_token(client, test_user_token):
     ## verify the new token works
     response = client.get('/me', headers=[['Authorization', f"Bearer {new_token}"]])
     assert response.status_code == 200
-    
+
 def test_protected_with_token(client, user_headers):
     response = client.get('/me', headers=user_headers)
 

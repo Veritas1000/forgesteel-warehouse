@@ -1,7 +1,14 @@
 import logging
 
-from flask import Blueprint, jsonify, request, make_response
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, current_user, set_access_cookies, set_refresh_cookies
+from flask import Blueprint, jsonify, make_response, request
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    current_user,
+    jwt_required,
+    set_access_cookies,
+    set_refresh_cookies,
+)
 
 from forgesteel_warehouse.models import User
 
@@ -36,7 +43,9 @@ def connect():
 @jwt_required(refresh=True)
 def refresh():
     access_token = create_access_token(identity=current_user)
-    return jsonify(access_token=access_token)
+    resp = make_response(jsonify(access_token=access_token))
+    set_access_cookies(resp, access_token)
+    return resp
 
 @forgesteel_connector.route('/me')
 @jwt_required()

@@ -1,11 +1,12 @@
-from datetime import date
 import json
 import os
+from datetime import date
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from requests import HTTPError
+
 from forgesteel_warehouse.utils.patreon_api import PatreonApi
 
 
@@ -281,7 +282,6 @@ def test_get_identity_success_patron(mock_get):
 
     mock_get.assert_called_once()
 
-
 @patch('requests.get')
 def test_get_identity_error(mock_get):
     mock_response = mock_get.return_value
@@ -292,4 +292,5 @@ def test_get_identity_error(mock_get):
     token = 'accessToken123'
     api = PatreonApi()
     with pytest.raises(HTTPError, match="Error from patreon"):
+        api.get_identity(token)
         api.get_identity(token)

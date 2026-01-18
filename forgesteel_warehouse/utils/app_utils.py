@@ -3,6 +3,8 @@ import os
 import secrets
 import textwrap
 import uuid
+
+from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 from flask_migrate import upgrade
 from sqlalchemy import func
@@ -11,11 +13,13 @@ from forgesteel_warehouse import db, init_app
 from forgesteel_warehouse.api_key import ApiKey
 from forgesteel_warehouse.models import User
 
+
 def add_default_user(app):
-    return create_user(app, 'default_user')
+    return create_user(app, "default_user")
+
 
 def bootstrap():
-    skip = os.getenv('SKIP_BOOTSTRAP', 'False').lower() in ('true', '1', 't')
+    skip = os.getenv("SKIP_BOOTSTRAP", "False").lower() in ("true", "1", "t")
 
     config = create_or_load_config(skip)
     ## Initialize the DB
@@ -30,32 +34,37 @@ def bootstrap():
                 user_key = add_default_user(app)
                 print_key(user_key)
 
+
 def create_or_load_config(skip_create: bool = False):
     load_dotenv()
-    config_path = os.getenv('FSW_CONFIG_PATH', '/data/config.json')
+    config_path = os.getenv("FSW_CONFIG_PATH", "/data/config.json")
     changed = False
 
     try:
-        mode = 'r' if skip_create else 'a+'
-        with open(config_path, mode, encoding='utf-8') as config_file:
+        mode = "r" if skip_create else "a+"
+        with open(config_path, mode, encoding="utf-8") as config_file:
             config_file.seek(0)
             config = json.load(config_file)
     except:
         config = {}
 
     if not skip_create:
-        if 'SECRET_KEY' not in config:
-            config['SECRET_KEY'] = secrets.token_hex(64)
+        if "SECRET_KEY" not in config:
+            config["SECRET_KEY"] = secrets.token_hex(64)
             changed = True
-        if 'JWT_SECRET_KEY' not in config:
-            config['JWT_SECRET_KEY'] = secrets.token_hex(64)
+        if "JWT_SECRET_KEY" not in config:
+            config["JWT_SECRET_KEY"] = secrets.token_hex(64)
+            changed = True
+        if "CRYPT_KEY" not in config:
+            config["CRYPT_KEY"] = Fernet.generate_key().decode("utf-8")
             changed = True
 
         if changed:
-            with open(config_path, 'w', encoding='utf-8') as config_file:
+            with open(config_path, "w", encoding="utf-8") as config_file:
                 json.dump(config, config_file, ensure_ascii=False, indent=4)
 
     return config
+
 
 def create_user(app, user_name):
     with app.app_context():
@@ -67,6 +76,7 @@ def create_user(app, user_name):
         db.session.close()
 
         return ApiKey.makeApiKey(uid, key)
+
 
 def print_key(key):
     banner = f"""

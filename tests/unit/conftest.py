@@ -1,24 +1,29 @@
 import os
 from typing import Dict
 from unittest import mock
+
+import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-import pytest
-
 from flask_migrate import upgrade
-from forgesteel_warehouse import init_app, db
+
+from forgesteel_warehouse import db, init_app
 from forgesteel_warehouse.api_key import ApiKey
 from forgesteel_warehouse.models import User
+
 
 @pytest.fixture(scope="session")
 def app():
     test_config = {
-        'TESTING': True,
-        'JWT_COOKIE_DOMAIN': None,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:'
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "JWT_ACCESS_COOKIE_NAME": "jwt_access_cookie_name",
+        "JWT_REFRESH_COOKIE_NAME": "jwt_refresh_cookie_name",
+        "JWT_ACCESS_CSRF_COOKIE_NAME": "jwt_access_csrf_cookie_name",
+        "JWT_COOKIE_DOMAIN": None,
     }
     app = init_app(test_config)
-    
+
     with app.app_context():
         upgrade()
         yield app
@@ -71,20 +76,23 @@ def user_headers(request):
 def mock_env_vars(monkeypatch: pytest.MonkeyPatch):
     with mock.patch.dict(os.environ, clear=True):
         envvars = {
-            'PATREON_CLIENT_ID': 'FAKE_PATREON_CLIENT_ID',
-            'PATREON_CLIENT_SECRET': 'FAKE_PATREON_CLIENT_SECRET',
-            'PATREON_OAUTH_REDIRECT_URI': 'http://some.fake/oauth-redirect',
-            'PATREON_CAMPAIGN_ID_FORGESTEEL': '12345678',
-            'PATREON_CAMPAIGN_ID_MCDM': '42424242',
-            'LOG_LEVEL': '',
+            "PATREON_CLIENT_ID": "FAKE_PATREON_CLIENT_ID",
+            "PATREON_CLIENT_SECRET": "FAKE_PATREON_CLIENT_SECRET",
+            "PATREON_OAUTH_REDIRECT_URI": "http://some.fake/oauth-redirect",
+            "PATREON_CAMPAIGN_ID_FORGESTEEL": "12345678",
+            "PATREON_CAMPAIGN_ID_MCDM": "42424242",
+            "JWT_COOKIE_DOMAIN": '',
+            "LOG_LEVEL": "",
         }
         for k, v in envvars.items():
             monkeypatch.setenv(k, v)
         yield
 
 def get_csrf_access_token_from_response(response):
-    csrf_cookie = get_cookie_from_response(response, 'csrf_access_token')
-    token = csrf_cookie['csrf_access_token'] if csrf_cookie is not None else None
+    csrf_cookie = get_cookie_from_response(response, "jwt_access_csrf_cookie_name")
+    token = (
+        csrf_cookie["jwt_access_csrf_cookie_name"] if csrf_cookie is not None else None
+    )
     return token
 
 def get_cookie_from_response(response, cookie_name) -> Dict[str, str] | None:

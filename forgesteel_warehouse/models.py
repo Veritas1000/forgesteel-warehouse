@@ -1,8 +1,11 @@
 import logging
+
 from argon2 import PasswordHasher
+from flask import current_app
 
 from forgesteel_warehouse import db, jwt
 from forgesteel_warehouse.api_key import ApiKey
+from forgesteel_warehouse.utils.crypt import Crypt
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +17,9 @@ class User(db.Model):
     _auth_key = db.mapped_column('auth_key', db.String(120))
     patreon_id = db.mapped_column(db.String(12), unique=True, index=True)
     patreon_email = db.mapped_column(db.String(100))
-    
+    _patreon_access_token = db.mapped_column('patreon_access_token', db.String(200))
+    _patreon_refresh_token = db.mapped_column('patreon_refresh_token', db.String(200))
+
     heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
     homebrew = db.relationship('FsHomebrew', uselist=False, back_populates='user')
     session = db.relationship('FsSession', uselist=False, back_populates='user')
@@ -41,6 +46,34 @@ class User(db.Model):
         except:
             return False
 
+    def set_patreon_access_token(self, access_token):
+        if access_token is not None:
+            c = Crypt(current_app.config["CRYPT_KEY"])
+            self._patreon_access_token = c.encrypt(access_token)
+        else:
+            self._patreon_access_token = None
+
+    def get_patreon_access_token(self):
+        if self._patreon_access_token is not None:
+            c = Crypt(current_app.config["CRYPT_KEY"])
+            return c.decrypt(self._patreon_access_token)
+        else:
+            return None
+
+    def set_patreon_refresh_token(self, refresh_token):
+        if refresh_token is not None:
+            c = Crypt(current_app.config["CRYPT_KEY"])
+            self._patreon_refresh_token = c.encrypt(refresh_token)
+        else:
+            self._patreon_refresh_token = None
+
+    def get_patreon_refresh_token(self):
+        if self._patreon_refresh_token is not None:
+            c = Crypt(current_app.config["CRYPT_KEY"])
+            return c.decrypt(self._patreon_refresh_token)
+        else:
+            return None
+
     @classmethod
     def find_by_api_token(cls, api_token):
         (uid, key) = ApiKey.parseApiKey(api_token)
@@ -48,7 +81,7 @@ class User(db.Model):
 
         if user is not None and user.check_auth_key(key):
             return user
-    
+
         return None
 
     @classmethod
@@ -58,7 +91,7 @@ class User(db.Model):
 
             if user is not None:
                 return user
-    
+
         return None
 
     def __str__(self):

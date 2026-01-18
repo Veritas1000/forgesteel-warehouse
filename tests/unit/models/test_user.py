@@ -1,6 +1,7 @@
-from forgesteel_warehouse.models import User
-from forgesteel_warehouse.api_key import ApiKey
 from forgesteel_warehouse import db
+from forgesteel_warehouse.api_key import ApiKey
+from forgesteel_warehouse.models import User
+
 
 def test_user_creation_no_key(app):
     new_user = User(name='test_no_key')
@@ -69,3 +70,54 @@ def test_user_find_by_patreon_id(app):
     user = User.find_by_patreon_id(id1)
     assert user is not None
     assert user.name == 'test_patreon_1'
+
+def test_user_patreon_token(app):
+    pid = "test-auth-1"
+    user = User(name='test_token', patreon_id=pid)
+    user.set_patreon_access_token('test-auth-token')
+
+    db.session.add(user)
+    db.session.commit()
+
+    user = User.find_by_patreon_id(pid)
+    assert user is not None
+    assert user.get_patreon_access_token() == 'test-auth-token'
+
+
+def test_user_patreon_token_delete(app):
+    pid = "test-auth-2"
+    user = User(name="test_token", patreon_id=pid)
+    user.set_patreon_access_token(None)
+
+    db.session.add(user)
+    db.session.commit()
+
+    user = User.find_by_patreon_id(pid)
+    assert user is not None
+    assert user.get_patreon_access_token() == None
+
+
+def test_user_patreon_refresh_token(app):
+    pid = "test-auth-3"
+    user = User(name="test_token", patreon_id=pid)
+    user.set_patreon_refresh_token("test-refresh-token")
+
+    db.session.add(user)
+    db.session.commit()
+
+    user = User.find_by_patreon_id(pid)
+    assert user is not None
+    assert user.get_patreon_refresh_token() == "test-refresh-token"
+
+
+def test_user_patreon_refresh_token_delete(app):
+    pid = "test-auth-4"
+    user = User(name="test_token", patreon_id=pid)
+    user.set_patreon_refresh_token(None)
+
+    db.session.add(user)
+    db.session.commit()
+
+    user = User.find_by_patreon_id(pid)
+    assert user is not None
+    assert user.get_patreon_refresh_token() == None

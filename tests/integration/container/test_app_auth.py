@@ -40,4 +40,3 @@ def test_refresh_token(container_url, api_token):
     ## Verify new token
     cr = requests.get(f"{container_url}/data", headers={'Authorization': f"Bearer {new_token}"})
     assert cr.status_code == 200
-
