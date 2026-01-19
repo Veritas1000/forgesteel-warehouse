@@ -76,6 +76,8 @@ def init_app(app_config=None):
     ## Logging setup
     level = logging.NOTSET
     match app.config["LOG_LEVEL"]:
+        case "TRACE":
+            level = 5 ## debug is 10, we define a level deeper than that
         case "DEBUG":
             level = logging.DEBUG
         case "INFO":

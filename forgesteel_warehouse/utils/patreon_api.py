@@ -1,3 +1,4 @@
+import http.client as http_client
 import logging
 import os
 from dataclasses import dataclass, field
@@ -8,16 +9,7 @@ from urllib.parse import urlencode
 import requests
 
 log = logging.getLogger(__name__)
-
-# ## Useful for debugging low level http requests
-# import http.client as http_client
-# http_client.HTTPConnection.debuglevel = 1
-
-# logging.basicConfig()
-# logging.getLogger().setLevel(logging.DEBUG)
-# requests_log = logging.getLogger("requests.packages.urllib3")
-# requests_log.setLevel(logging.DEBUG)
-# requests_log.propagate = True
+requests_log = logging.getLogger("requests.packages.urllib3")
 
 
 @dataclass
@@ -66,6 +58,11 @@ class PatreonApi:
         self.MCDM_CAMPAIGN_ID = os.getenv('PATREON_CAMPAIGN_ID_MCDM')
         self.FORGESTEEL_CAMPAIGN_ID = os.getenv('PATREON_CAMPAIGN_ID_FORGESTEEL')
 
+        if log.getEffectiveLevel() < logging.DEBUG:
+            log.debug("setting up http debug logging")
+            http_client.HTTPConnection.debuglevel = 1
+            requests_log.setLevel(logging.DEBUG)
+
     def generate_authorize_url(self, redirect_uri, state):
         params = {
             'response_type': 'code',
@@ -78,6 +75,10 @@ class PatreonApi:
         return url
 
     def get_token(self, auth_code, redirect_uri):
+        if log.getEffectiveLevel() < logging.DEBUG:
+            log_token = "<None>" if auth_code is None else auth_code[0:5]
+            log.debug(f"Getting Patreon token with [{log_token}...]")
+
         response = requests.post(
             'https://www.patreon.com/api/oauth2/token',
             params = {
@@ -92,6 +93,9 @@ class PatreonApi:
             },
             timeout = 10
         )
+        if not response.ok:
+            log.warning(f"Problem getting patreon token: {response.text}")
+
         response.raise_for_status()
 
         tokens = response.json()
@@ -101,19 +105,24 @@ class PatreonApi:
         return access_token, refresh_token, lifetime
 
     def refresh_token(self, refresh_token):
+        if log.getEffectiveLevel() < logging.DEBUG:
+            log_token = "<None>" if refresh_token is None else refresh_token[0:5]
+            log.debug(f"Refreshing Patreon token with [{log_token}...]")
+
         response = requests.post(
-            'https://www.patreon.com/api/oauth2/token',
-            params = {
-                'grant_type': 'refresh_token',
-                'client_id': self.CLIENT_ID,
-                'client_secret': self.CLIENT_SECRET,
-                'refresh_token': refresh_token
+            "https://www.patreon.com/api/oauth2/token",
+            params={
+                "grant_type": "refresh_token",
+                "client_id": self.CLIENT_ID,
+                "client_secret": self.CLIENT_SECRET,
+                "refresh_token": refresh_token,
             },
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            timeout = 10
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
         )
+        if not response.ok:
+            log.warning(f"Problem getting patreon token: {response.text}")
+
         response.raise_for_status()
 
         tokens = response.json()
@@ -123,6 +132,10 @@ class PatreonApi:
         return access_token, refresh_token, lifetime
 
     def get_identity(self, access_token):
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log_token = "<None>" if access_token is None else access_token[0:5]
+            log.debug(f"Getting Patreon identity with [{log_token}...]")
+
         response = requests.get(
             'https://www.patreon.com/api/oauth2/v2/identity',
             params = {
@@ -137,6 +150,9 @@ class PatreonApi:
             },
             timeout = 10
         )
+        if not response.ok:
+            log.warning(f"Problem getting patreon identity: {response.text}")
+
         response.raise_for_status()
 
         identity = response.json()

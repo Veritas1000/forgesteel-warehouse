@@ -54,6 +54,7 @@ def get_patreon_info_and_make_response(access_token, refresh_token, update_token
         user_data = patreon_api.get_identity(access_token)
         authenticated = True
     except HTTPError as e:
+        log.debug(e)
         if e.response.status_code == 401:
             refreshed_tokens = patreon_api.refresh_token(refresh_token)
             user_data = patreon_api.get_identity(refreshed_tokens[0])

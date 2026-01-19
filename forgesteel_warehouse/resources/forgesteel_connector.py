@@ -8,8 +8,10 @@ from flask_jwt_extended import (
     jwt_required,
     set_access_cookies,
     set_refresh_cookies,
+    unset_jwt_cookies,
 )
 
+from forgesteel_warehouse import jwt
 from forgesteel_warehouse.models import User
 
 log = logging.getLogger(__name__)
@@ -51,3 +53,9 @@ def refresh():
 @jwt_required()
 def me():
     return make_response(jsonify(logged_in_as=current_user.name), 200)
+
+@jwt.invalid_token_loader
+def invalid_token(error_string):
+    resp = make_response(jsonify(msg=error_string), 422)
+    unset_jwt_cookies(resp)
+    return resp
