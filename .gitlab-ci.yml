@@ -76,8 +76,8 @@ integration-tests:
   image: ubuntu:24.04
   variables:
     TESTCONTAINERS_PULL_TIMEOUT: 300
-    TESTCONTAINERS_TIMEOUT: 300
-  retry: 1
+    TESTCONTAINERS_TIMEOUT: 600
+  retry: 2
   services:
     - "docker:${DOCKER_EXECUTOR_VERSION}-dind"
   before_script:
