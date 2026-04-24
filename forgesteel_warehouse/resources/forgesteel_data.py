@@ -56,7 +56,8 @@ def put_data(key):
                 db.session.add(heroes)
             else:
                 heroes.data = data
-        case 'forgesteel-homebrew-settings':
+        case "forgesteel-homebrew-settings":
+            resp.headers["Deprecation"] = "@1777247999"
             homebrew = FsHomebrew.query.filter_by(user=current_user).one_or_none()
             if homebrew is None:
                 homebrew = FsHomebrew(current_user, data)
@@ -147,3 +148,65 @@ def delete_hero(hero_id):
     db.session.refresh(current_user)
     return make_response(jsonify(), 204)
 
+
+@forgesteel_data.get("/data/forgesteel-homebrew-settings/<homebrew_id>")
+@jwt_required()
+def get_homebrew(homebrew_id):
+    homebrew_obj = FsHomebrew.query.filter_by(user=current_user).one_or_404()
+    all_homebrew = homebrew_obj.data
+
+    matching_homebrew = [hb for hb in all_homebrew if hb["id"] == homebrew_id]
+    count = len(matching_homebrew)
+    status = 200
+    if count == 0:
+        return make_response(jsonify(msg="No Homebrew with that ID found"), 404)
+    elif count > 1:
+        status = 206
+
+    homebrew = matching_homebrew[0]
+    return make_response(jsonify(data=homebrew), status)
+
+
+@forgesteel_data.put("/data/forgesteel-homebrew-settings/<homebrew_id>")
+@jwt_required()
+def save_homebrew(homebrew_id):
+    homebrew_data = request.get_json()
+
+    ## Verify that homebrew id in data matches id in url
+    if "id" not in homebrew_data or homebrew_id != homebrew_data["id"]:
+        return make_response(jsonify(msg="Homebrew id data must match url"), 400)
+
+    all_homebrew_obj = FsHomebrew.query.filter_by(user=current_user).one_or_none()
+    all_homebrew = all_homebrew_obj.data if all_homebrew_obj is not None else []
+
+    ## loop through homebrew and remove mathing id
+    all_homebrew = [hb for hb in all_homebrew if hb["id"] != homebrew_id]
+    all_homebrew.append(homebrew_data)
+
+    if all_homebrew_obj is None:
+        homebrew = FsHomebrew(current_user, all_homebrew)
+        db.session.add(homebrew)
+    else:
+        current_user.homebrew.data = all_homebrew
+
+    db.session.commit()
+    db.session.refresh(current_user)
+    return make_response(jsonify(), 204)
+
+
+@forgesteel_data.delete("/data/forgesteel-homebrew-settings/<homebrew_id>")
+@jwt_required()
+def delete_homebrew(homebrew_id):
+    all_homebrew_obj = FsHomebrew.query.filter_by(user=current_user).one_or_404()
+    all_homebrew = all_homebrew_obj.data if all_homebrew_obj is not None else []
+
+    if not any(hero["id"] == homebrew_id for hero in all_homebrew):
+        return make_response(jsonify(), 404)
+
+    ## loop through homebrew and remove mathing id
+    updated_hb = [hb for hb in all_homebrew if hb["id"] != homebrew_id]
+    current_user.homebrew.data = updated_hb
+
+    db.session.commit()
+    db.session.refresh(current_user)
+    return make_response(jsonify(), 204)
