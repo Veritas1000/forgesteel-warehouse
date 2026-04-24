@@ -6,10 +6,11 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 from flask_migrate import upgrade
+from sqlalchemy import delete
 
 from forgesteel_warehouse import db, init_app
 from forgesteel_warehouse.api_key import ApiKey
-from forgesteel_warehouse.models import User
+from forgesteel_warehouse.models import FsHeroes, FsHomebrew, User
 
 
 @pytest.fixture(scope="session")
@@ -33,6 +34,15 @@ def app():
 @pytest.fixture()
 def client(app: Flask):
     return app.test_client()
+
+
+@pytest.fixture()
+def clean_data_client(client):
+    yield client
+    db.session.execute(delete(FsHomebrew))
+    db.session.execute(delete(FsHeroes))
+    db.session.commit()
+
 
 @pytest.fixture(scope="session")
 def test_user(app: Flask):

@@ -1,7 +1,7 @@
 import pytest
 
+
 @pytest.fixture(params=[
-    'forgesteel-heroes',
     'forgesteel-homebrew-settings',
     'forgesteel-session',
     'forgesteel-hidden-setting-ids'
