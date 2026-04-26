@@ -236,7 +236,7 @@ pip install --upgrade -r requirements.in
 - run tests, verify, etc
 - freeze deps
 ```bash
-pip-compile requirements.in
+pip-compile requirements.in > requirements.txt
 ```
 
 ### Version bump
