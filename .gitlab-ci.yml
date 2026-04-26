@@ -17,7 +17,7 @@ variables:
   AST_ENABLE_MR_PIPELINES: true
   DOCKER_EXECUTOR_VERSION: '28' # testcontainers doesn't work with docker 29 yet, stick with 28
   DOCKER_PACKAGE_VERSION: '5:28.5.2-1~ubuntu.24.04~noble'
-  DOCTL_VERSION: '1.148.0'
+  DOCTL_VERSION: '1.155.0'
 
 include:
 - template: Jobs/SAST.gitlab-ci.yml
