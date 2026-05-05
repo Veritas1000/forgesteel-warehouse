@@ -4,6 +4,7 @@ def test_get_heroes_succeeds(clean_data_client, user_headers):
     assert response.status_code == 200
     assert response.json is not None
     assert "data" in response.json
+    assert response.json["data"] == []
 
 def test_put_heroes_succeeds(clean_data_client, user_headers):
     response = clean_data_client.put(
@@ -27,6 +28,32 @@ def test_get_heroes_returns_same_as_put(clean_data_client, user_headers):
     response2 = clean_data_client.get("/data/forgesteel-heroes", headers=user_headers)
     assert response2.status_code == 200
     assert response2.json["data"] == heroes_data
+
+def test_get_heroes_can_filter_returned_fields(clean_data_client, user_headers):
+    heroes_data = [{"id": "123", "foo": "bar"}, {"id": "234", "name": "Foo Bar"}]
+    response1 = clean_data_client.put(
+        "/data/forgesteel-heroes",
+        json=heroes_data,
+        headers=user_headers,
+    )
+
+    assert response1.status_code == 204
+
+    response2 = clean_data_client.get("/data/forgesteel-heroes?fields=name", headers=user_headers)
+    assert response2.status_code == 200
+    assert response2.json["data"] == [
+        {"id": "123"},
+        {"id": "234", "name": "Foo Bar"},
+    ]
+
+    response3 = clean_data_client.get(
+        "/data/forgesteel-heroes?fields=id,foo", headers=user_headers
+    )
+    assert response3.status_code == 200
+    assert response3.json["data"] == [
+        {"id": "123", "foo": "bar"},
+        {"id": "234"},
+    ]
 
 def test_get_unknown_hero_404s(clean_data_client, user_headers):
     ## No heroes object

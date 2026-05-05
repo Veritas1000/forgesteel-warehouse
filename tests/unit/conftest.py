@@ -38,6 +38,9 @@ def client(app: Flask):
 
 @pytest.fixture()
 def clean_data_client(client):
+    db.session.execute(delete(FsHomebrew))
+    db.session.execute(delete(FsHeroes))
+    db.session.commit()
     yield client
     db.session.execute(delete(FsHomebrew))
     db.session.execute(delete(FsHeroes))

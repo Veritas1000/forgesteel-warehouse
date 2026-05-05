@@ -25,22 +25,54 @@ def get_data_types():
         'forgesteel-hidden-setting-ids',
         ]), 200)
 
-@forgesteel_data.get('/data/<key>')
+
+@forgesteel_data.get("/data/forgesteel-heroes")
+@jwt_required()
+def get_heroes():
+    data = current_user.heroes.data if current_user.heroes is not None else []
+    fields = request.args.get("fields")
+    if fields is not None:
+        fields = fields.split(",")
+        filtered = []
+        for h in data:
+            reduced = {
+                "id": h["id"]
+            }
+            for field in fields:
+                if field in h:
+                    reduced[field] = h[field]
+            
+            filtered.append(reduced)
+        data = filtered
+
+    return make_response(jsonify(data=data), 200)
+
+
+@forgesteel_data.get("/data/<key>")
 @jwt_required()
 def get_data(key):
     match key:
-        case "forgesteel-heroes":
-            data = current_user.heroes.data if current_user.heroes is not None else None
-        case 'forgesteel-homebrew-settings':
-            data = current_user.homebrew.data if current_user.homebrew is not None else None
-        case 'forgesteel-session':
-            data = current_user.session.data if current_user.session is not None else None
-        case 'forgesteel-hidden-setting-ids':
-            data = current_user.hidden_settings.data if current_user.hidden_settings is not None else None
+        case "forgesteel-homebrew-settings":
+            data = (
+                current_user.homebrew.data
+                if current_user.homebrew is not None
+                else None
+            )
+        case "forgesteel-session":
+            data = (
+                current_user.session.data if current_user.session is not None else None
+            )
+        case "forgesteel-hidden-setting-ids":
+            data = (
+                current_user.hidden_settings.data
+                if current_user.hidden_settings is not None
+                else None
+            )
         case _:
             return make_response(jsonify(message=f"Unknown data key: {key}"), 404)
 
     return make_response(jsonify(data=data), 200)
+
 
 @forgesteel_data.put('/data/<key>')
 @jwt_required()
