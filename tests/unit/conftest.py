@@ -94,7 +94,7 @@ def mock_env_vars(monkeypatch: pytest.MonkeyPatch):
             "PATREON_OAUTH_REDIRECT_URI": "http://some.fake/oauth-redirect",
             "PATREON_CAMPAIGN_ID_FORGESTEEL": "12345678",
             "PATREON_CAMPAIGN_ID_MCDM": "42424242",
-            "JWT_COOKIE_DOMAIN": '',
+            "JWT_COOKIE_DOMAIN": "",
             "LOG_LEVEL": "",
         }
         for k, v in envvars.items():

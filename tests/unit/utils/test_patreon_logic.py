@@ -1,3 +1,8 @@
+import os
+from unittest import mock
+
+import pytest
+
 from forgesteel_warehouse.utils.patreon_api import PatreonUser, PatronState, PatronTier
 from forgesteel_warehouse.utils.patreon_logic import has_warehouse_access
 
@@ -37,3 +42,26 @@ def test_has_warehouse_access_non_patron():
 
     result = has_warehouse_access(user)
     assert result == False
+
+
+def test_has_warehouse_access_owner_env_not_set():
+    user = PatreonUser(
+        id="11223344",
+        forgesteel=PatronState(patron=False, tiers=[]),
+    )
+
+    result = has_warehouse_access(user)
+    assert result == False
+
+
+def test_has_warehouse_access_owner_env_set(monkeypatch: pytest.MonkeyPatch):
+    with mock.patch.dict(os.environ, clear=True):
+        monkeypatch.setenv("PATREON_OWNER_ID", "11223344")
+
+        user = PatreonUser(
+            id="11223344",
+            forgesteel=PatronState(patron=False, tiers=[]),
+        )
+
+        result = has_warehouse_access(user)
+        assert result == True
