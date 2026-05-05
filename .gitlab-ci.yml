@@ -49,7 +49,7 @@ include:
   - apt list -a docker-ce
   - apt-get install -y docker-ce="${DOCKER_PACKAGE_VERSION}" docker-ce-cli="${DOCKER_PACKAGE_VERSION}" containerd.io docker-buildx-plugin docker-compose-plugin
   - nohup dockerd >/dev/null 2>&1 &
-  - docker --version
+  - docker info
 
 .doctl_setup: &doctl_setup
   - curl -Lo doctl.tar.gz "https://github.com/digitalocean/doctl/releases/download/v${DOCTL_VERSION}/doctl-${DOCTL_VERSION}-linux-amd64.tar.gz" && tar xf doctl.tar.gz
@@ -86,6 +86,9 @@ integration-tests:
     - python -m venv ci
     - source ci/bin/activate
     - pip install --no-cache-dir -r requirements.txt
+    - docker pull -q veritas1000/forgesteel-warehouse:0.1.6
+    - docker pull -q veritas1000/forgesteel-warehouse:1.4.1
+    - docker pull -q veritas1000/forgesteel-warehouse:latest
   script:
     - python -m pytest tests/integration --junitxml=int_result.xml
   artifacts:
