@@ -10,20 +10,20 @@ from forgesteel_warehouse.utils.crypt import Crypt
 log = logging.getLogger(__name__)
 
 class User(db.Model):
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     id = db.mapped_column(db.Integer, primary_key=True)
     name = db.mapped_column(db.String(100))
-    _auth_key = db.mapped_column('auth_key', db.String(120))
+    _auth_key = db.mapped_column("auth_key", db.String(120))
     patreon_id = db.mapped_column(db.String(12), unique=True, index=True)
     patreon_email = db.mapped_column(db.String(100))
-    _patreon_access_token = db.mapped_column('patreon_access_token', db.String(200))
-    _patreon_refresh_token = db.mapped_column('patreon_refresh_token', db.String(200))
+    _patreon_access_token = db.mapped_column("patreon_access_token", db.String(200))
+    _patreon_refresh_token = db.mapped_column("patreon_refresh_token", db.String(200))
 
-    heroes = db.relationship('FsHeroes', uselist=False, back_populates='user')
-    homebrew = db.relationship('FsHomebrew', uselist=False, back_populates='user')
-    session = db.relationship('FsSession', uselist=False, back_populates='user')
-    hidden_settings = db.relationship('FsHiddenSettings', uselist=False, back_populates='user')
+    heroes = db.relationship("FsHero", uselist=True, back_populates="user")
+    homebrew = db.relationship("FsHomebrew", uselist=True, back_populates="user")
+    session = db.relationship("FsSession", uselist=False, back_populates="user")
+    hidden_settings = db.relationship("FsHiddenSettings", uselist=False, back_populates="user")
 
     def __init__(self, name, auth_key=None, patreon_id=None):
         self.name = name
@@ -109,38 +109,41 @@ def user_lookup_callback(_jwt_header, jwt_data):
     identity = int(jwt_data["sub"])
     return User.query.filter_by(id=identity).one_or_none()
 
-class FsHeroes(db.Model):
-    __tablename__ = 'fs_heroes'
-    
-    id = db.mapped_column(db.Integer, primary_key=True)
-    user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
-    user = db.relationship('User', back_populates='heroes')
+class FsHero(db.Model):
+    __tablename__ = "fs_hero"
+
+    id = db.mapped_column(db.String(100), primary_key=True)
+    user_id = db.mapped_column(db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", back_populates="heroes")
 
     data = db.mapped_column(db.JSON)
 
     def __init__(self, user, data):
+        self.id = data["id"]
         self.user = user
         self.data = data
 
 class FsHomebrew(db.Model):
-    __tablename__ = 'fs_homebrew'
-    
-    id = db.mapped_column(db.Integer, primary_key=True)
-    user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
-    user = db.relationship('User', back_populates='homebrew')
+    __tablename__ = "fs_homebrew"
+
+    id = db.mapped_column(db.String(100), primary_key=True)
+    user_id = db.mapped_column(db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", back_populates="homebrew")
 
     data = db.mapped_column(db.JSON)
 
     def __init__(self, user, data):
+        self.id = data["id"]
         self.user = user
         self.data = data
 
+
 class FsSession(db.Model):
-    __tablename__ = 'fs_session'
+    __tablename__ = "fs_session"
     
     id = db.mapped_column(db.Integer, primary_key=True)
-    user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
-    user = db.relationship('User', back_populates='session')
+    user_id = db.mapped_column(db.ForeignKey("user.id"), unique=True, nullable=True)
+    user = db.relationship("User", back_populates="session")
 
     data = db.mapped_column(db.JSON)
 
@@ -149,11 +152,11 @@ class FsSession(db.Model):
         self.data = data
 
 class FsHiddenSettings(db.Model):
-    __tablename__ = 'fs_hidden_settings'
+    __tablename__ = "fs_hidden_settings"
     
     id = db.mapped_column(db.Integer, primary_key=True)
-    user_id = db.mapped_column(db.ForeignKey('user.id'), unique=True, nullable=True)
-    user = db.relationship('User', back_populates='hidden_settings')
+    user_id = db.mapped_column(db.ForeignKey("user.id"), unique=True, nullable=True)
+    user = db.relationship("User", back_populates="hidden_settings")
 
     data = db.mapped_column(db.JSON)
 

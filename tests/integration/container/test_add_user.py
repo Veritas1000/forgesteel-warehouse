@@ -4,6 +4,7 @@ import requests
 
 from tests.integration.utils import get_csrf_headers, get_csrf_token
 
+
 def test_add_user_script(app_container):
     exit_code, output = app_container.exec('python utils/add_user.py')
 
@@ -24,7 +25,7 @@ def test_user_data_separation(app_container):
         headers = get_csrf_headers(app_container, session1)
         url = app_container._create_connection_url()
 
-        add_req = session1.put(f"{url}/data/forgesteel-homebrew-settings", json=user1_data, headers=headers)
+        add_req = session1.put(f"{url}/data/forgesteel-session", json=user1_data, headers=headers)
         assert add_req.status_code == 204
 
         ## Add a new user
@@ -37,21 +38,21 @@ def test_user_data_separation(app_container):
 
         ## Verify the new user has no data
         csrf_token2 = get_csrf_token(app_container, new_token, session2)
-        headers2 = {'X-CSRF-TOKEN': csrf_token2}
-        get_req = session2.get(f"{url}/data/forgesteel-homebrew-settings", headers=headers2)
+        headers2 = {'X-CSRF-TOKEN': csrf_token2} if csrf_token2 is not None else None
+        get_req = session2.get(f"{url}/data/forgesteel-session", headers=headers2)
         assert get_req.status_code == 200
         assert get_req.json()['data'] == None
 
         ## insert some data
-        add_req = session2.put(f"{url}/data/forgesteel-homebrew-settings", json=user2_data, headers=headers2)
+        add_req = session2.put(f"{url}/data/forgesteel-session", json=user2_data, headers=headers2)
         assert add_req.status_code == 204
 
         ## Verify data for each user
-        get_req1 = session1.get(f"{url}/data/forgesteel-homebrew-settings", headers=headers)
+        get_req1 = session1.get(f"{url}/data/forgesteel-session", headers=headers)
         assert get_req1.status_code == 200
         assert get_req1.json()['data'] == user1_data
 
-        get_req2 = session2.get(f"{url}/data/forgesteel-homebrew-settings", headers=headers2)
+        get_req2 = session2.get(f"{url}/data/forgesteel-session", headers=headers2)
         assert get_req2.status_code == 200
         assert get_req2.json()['data'] == user2_data
 

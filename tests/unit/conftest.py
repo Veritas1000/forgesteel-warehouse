@@ -10,7 +10,7 @@ from sqlalchemy import delete
 
 from forgesteel_warehouse import db, init_app
 from forgesteel_warehouse.api_key import ApiKey
-from forgesteel_warehouse.models import FsHeroes, FsHomebrew, User
+from forgesteel_warehouse.models import FsHero, FsHomebrew, User
 
 
 @pytest.fixture(scope="session")
@@ -39,11 +39,11 @@ def client(app: Flask):
 @pytest.fixture()
 def clean_data_client(client):
     db.session.execute(delete(FsHomebrew))
-    db.session.execute(delete(FsHeroes))
+    db.session.execute(delete(FsHero))
     db.session.commit()
     yield client
     db.session.execute(delete(FsHomebrew))
-    db.session.execute(delete(FsHeroes))
+    db.session.execute(delete(FsHero))
     db.session.commit()
 
 

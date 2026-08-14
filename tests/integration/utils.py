@@ -3,6 +3,7 @@ from typing import Dict
 
 import requests
 
+
 def get_api_token(app_container):
     log = app_container.get_stdout()
     token = re.search(r"^\$1\$[0-9a-f]+$", log, re.MULTILINE)
@@ -20,7 +21,7 @@ def get_csrf_headers(app_container, requests_session):
     api_token = get_api_token(app_container)
     token = get_csrf_token(app_container, api_token, requests_session)
 
-    headers = {'X-CSRF-TOKEN': token}
+    headers = {'X-CSRF-TOKEN': token} if token is not None else None
     return headers
 
 def get_csrf_access_token_from_response(response: requests.Response) -> str | None:

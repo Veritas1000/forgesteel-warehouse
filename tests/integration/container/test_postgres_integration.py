@@ -1,11 +1,11 @@
 import requests
-
-from testcontainers.postgres import PostgresContainer
-from testcontainers.generic import ServerContainer
 from testcontainers.core.network import Network
 from testcontainers.core.wait_strategies import HttpWaitStrategy
+from testcontainers.generic import ServerContainer
+from testcontainers.postgres import PostgresContainer
 
 from tests.integration.utils import get_csrf_headers
+
 
 def test_postgres_connection(app_image):
     with (
@@ -29,12 +29,12 @@ def test_postgres_connection(app_image):
             url = app_container._create_connection_url()
 
             ## Add some data
-            add_req = session.put(f"{url}/data/forgesteel-heroes", json=test_data, headers=headers)
+            add_req = session.put(f"{url}/data/forgesteel-hidden-setting-ids", json=test_data, headers=headers)
             
             assert add_req.status_code == 204
 
             ## Confirm via GET
-            get_req = session.get(f"{url}/data/forgesteel-heroes", headers=headers)
+            get_req = session.get(f"{url}/data/forgesteel-hidden-setting-ids", headers=headers)
 
             assert get_req.status_code == 200
             assert get_req.json()['data'] == test_data

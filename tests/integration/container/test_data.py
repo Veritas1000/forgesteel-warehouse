@@ -1,14 +1,16 @@
 import logging
+
 import pytest
 
 log = logging.getLogger(__name__)
 
-@pytest.fixture(params=[
-    'forgesteel-heroes',
-    'forgesteel-homebrew-settings',
-    'forgesteel-session',
-    'forgesteel-hidden-setting-ids'
-    ])
+
+@pytest.fixture(
+    params=[
+        "forgesteel-session",
+        "forgesteel-hidden-setting-ids",
+    ]
+)
 def data_key_endpoint(container_url, request):
     return f"{container_url}/data/{request.param}"
 

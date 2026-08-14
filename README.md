@@ -1,6 +1,6 @@
 # Forge Steel - Warehouse
 
-A data backend for [Forge Steel](https://andyaiken.github.io/forgesteel/)
+A data backend for [Forge Steel](https://forgesteel.net)
 
 Forge Steel Warehouse runs as a container that exposes an api which Forge Steel can use to store your Hero and Sourcebook data *outside* your browser. This means you can share data cross devices, and not worry about a browser update wiping out all of your created characters.
 
@@ -98,7 +98,7 @@ services:
 Right now, there is no automatic data migration from the old local Forge Steel storage to the Warehouse, so upon loading Forge Steel while connected to the Warehouse, it will look like all of your data is gone! However, your local data is still there.
 
 To transfer data into the warehouse:
-- Go to [the Forge Steel transfer](https://andyaiken.github.io/forgesteel/#/transfer) and follow the instructions on that page.
+- Go to [the Forge Steel transfer](https://forgesteel.net#/transfer) and follow the instructions on that page.
 
 ### Configuration
 
