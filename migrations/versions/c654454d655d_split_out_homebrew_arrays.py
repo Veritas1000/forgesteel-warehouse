@@ -24,6 +24,7 @@ def upgrade():
     results = res.fetchall()
     homebrews = []
     prev_brew_ids = []
+    all_brew_ids = []
     for user_homebrews in results:
         prev_brew_ids.append(user_homebrews[0])
         user_id = user_homebrews[1]
@@ -37,7 +38,9 @@ def upgrade():
             brew_id = (
                 brew_data["id"] if "id" in brew_data else f"{user_id}-generated-{n}"
             )
+            brew_id = f"{brew_id}-{user_id}-{n}" if brew_id in all_brew_ids else brew_id
             homebrews.append({"id": brew_id, "user_id": user_id, "data": brew_data})
+            all_brew_ids.append(brew_id)
 
     ## drop the old table
     op.drop_table("fs_homebrew")

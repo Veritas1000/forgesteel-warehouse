@@ -26,13 +26,15 @@ rev_head: str = migration.revision
 
 hero1_1 = {"id": "hero1-1", "foo": "bar"}
 hero1_2 = {"id": "hero1-2", "qwer": "asdf"}
+hero1_dup = {"id": "hero_duplicate_id", "name": "user 1 hero"}
 hero2_1 = {"id": "hero2-1", "ljsdh": "saijfd"}
 hero2_2 = {"id": "hero2-2", "203487j": "12-394", "ruisgh": "vjhf"}
 hero2_3 = {"id": "hero2-3", "2pij34": "2p-394u"}
+hero2_dup = {"id": "hero_duplicate_id", "name": "user 2 hero"}
 
 initial_data = [
-    {"id": 1, "name": "user1", "heroes": [hero1_1, hero1_2]},
-    {"id": 2, "name": "user2", "heroes": [hero2_1, hero2_2, hero2_3]},
+    {"id": 1, "name": "user1", "heroes": [hero1_1, hero1_2, hero1_dup]},
+    {"id": 2, "name": "user2", "heroes": [hero2_1, hero2_2, hero2_3, hero2_dup]},
 ]
 
 
@@ -77,6 +79,8 @@ def on_upgrade(db):
             for hero in conn.execute(request).fetchall()
         }  ## { hero_id: {user_id, data} }
 
+        assert len(actual) == 7
+
         assert "hero1-1" in actual
         assert actual["hero1-1"]["user_id"] == 1
         assert actual["hero1-1"]["data"] == hero1_1
@@ -84,6 +88,15 @@ def on_upgrade(db):
         assert "hero1-2" in actual
         assert actual["hero1-2"]["user_id"] == 1
         assert actual["hero1-2"]["data"] == hero1_2
+
+        other_user1_hero = list(filter(
+            lambda hero: hero["user_id"] == 1
+            and hero["data"]["id"].startswith("hero_duplicate_id"),
+            actual.values(),
+        ))
+        assert other_user1_hero is not None
+        assert len(other_user1_hero) == 1
+        assert other_user1_hero[0]["data"] == hero1_dup
 
         assert "hero2-1" in actual
         assert actual["hero2-1"]["user_id"] == 2
@@ -96,6 +109,17 @@ def on_upgrade(db):
         assert "hero2-3" in actual
         assert actual["hero2-3"]["user_id"] == 2
         assert actual["hero2-3"]["data"] == hero2_3
+
+        other_user2_hero = list(
+            filter(
+                lambda hero: hero["user_id"] == 2
+                and hero["data"]["id"].startswith("hero_duplicate_id"),
+                actual.values(),
+            )
+        )
+        assert other_user2_hero is not None
+        assert len(other_user2_hero) == 1
+        assert other_user2_hero[0]["data"] == hero2_dup
 
 
 def on_downgrade(db):

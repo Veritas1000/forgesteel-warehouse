@@ -159,7 +159,7 @@ def test_app_upgrade_path_1_7(app_image):
             assert get_req.json()["data"]["name"] == "zldjxshfoi"
 
 
-@pytest.mark.skip(reason="Old upgrade path not necessary to test every time anmore")
+@pytest.mark.skip(reason="Old upgrade path not necessary to test every time anymore")
 def test_app_upgrade_path_1_4(app_image):
     with tempfile.TemporaryDirectory() as temp_directory:
         public_container = ServerContainer(
@@ -222,7 +222,7 @@ def test_app_upgrade_path_1_4(app_image):
             assert get_req.json()["data"] == test_data
 
 
-@pytest.mark.skip(reason="Old upgrade path not necessary to test every time anmore")
+@pytest.mark.skip(reason="Old upgrade path not necessary to test every time anymore")
 def test_app_upgrade_path_pre_1_0(app_image):
     with tempfile.TemporaryDirectory() as temp_directory:
         early_container = ServerContainer(port=5000, image='veritas1000/forgesteel-warehouse:0.1.6')

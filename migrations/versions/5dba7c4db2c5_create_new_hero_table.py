@@ -35,6 +35,7 @@ def upgrade():
     res = conn.execute(sa.text("select user_id, data from fs_heroes"))
     results = res.fetchall()
     heroes = []
+    all_hero_ids = []
     for user_heroes in results:
         user_id = user_heroes[0]
 
@@ -45,11 +46,13 @@ def upgrade():
 
         for n, hero_data in enumerate(heroes_data):
             hero_id = hero_data["id"] if "id" in hero_data else f"{user_id}-generated-{n}"
+            hero_id = f"{hero_id}-{user_id}-{n}" if hero_id in all_hero_ids else hero_id
             heroes.append({
                 "id": hero_id,
                 "user_id": user_id,
                 "data": hero_data
             })
+            all_hero_ids.append(hero_id)
 
     op.bulk_insert(fs_hero, heroes)
 

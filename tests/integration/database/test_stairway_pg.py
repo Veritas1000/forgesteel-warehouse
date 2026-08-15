@@ -26,9 +26,9 @@ def get_revisions():
     return revisions
 
 @pytest.mark.parametrize("revision", get_revisions())
-def test_migrations_stairway_pg(alembic_pg_config, revision: Script):
-    upgrade(alembic_pg_config, revision.revision)
+def test_migrations_stairway_pg(alembic_pg_config_session, revision: Script):
+    upgrade(alembic_pg_config_session, revision.revision)
 
     # We need -1 for downgrading first migration (its down_revision is None)
-    downgrade(alembic_pg_config, revision.down_revision or "-1")  # type: ignore
-    upgrade(alembic_pg_config, revision.revision)
+    downgrade(alembic_pg_config_session, revision.down_revision or "-1")  # type: ignore
+    upgrade(alembic_pg_config_session, revision.revision)

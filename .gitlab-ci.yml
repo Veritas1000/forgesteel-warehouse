@@ -86,11 +86,16 @@ integration-tests:
     - *docker_setup
     - python -m venv ci
     - source ci/bin/activate
+    - docker system prune -f
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir . --group test
-    - docker pull -q veritas1000/forgesteel-warehouse:0.1.6
-    - docker pull -q veritas1000/forgesteel-warehouse:1.4.1
+    - docker pull -q postgres:18
+    # - docker pull -q veritas1000/forgesteel-warehouse:0.1.6 ## older upgrade path versions
+    # - docker pull -q veritas1000/forgesteel-warehouse:1.4.1 ## older upgrade path versions
+    - docker pull -q veritas1000/forgesteel-warehouse:1.6.2
     - docker pull -q veritas1000/forgesteel-warehouse:latest
+  after_script:
+    - docker system prune -af
   script:
     - python -m pytest tests/integration --junitxml=int_result.xml
   artifacts:

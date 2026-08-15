@@ -26,13 +26,15 @@ rev_head: str = migration.revision
 
 brew1_1 = {"id": "brew1-1", "foo": "bar"}
 brew1_2 = {"id": "brew1-2", "qwer": "asdf"}
+brew1_dup = {"id": "brew_duplicate_id", "name": "user 1 homebrew"}
 brew2_1 = {"id": "brew2-1", "ljsdh": "saijfd"}
 brew2_2 = {"id": "brew2-2", "203487j": "12-394", "ruisgh": "vjhf"}
 brew2_3 = {"id": "brew2-3", "2pij34": "2p-394u"}
+brew2_dup = {"id": "brew_duplicate_id", "name": "user 2 homebrew"}
 
 initial_data = [
-    {"id": 1, "name": "user1", "homebrew": [brew1_1, brew1_2]},
-    {"id": 2, "name": "user2", "homebrew": [brew2_1, brew2_2, brew2_3]},
+    {"id": 1, "name": "user1", "homebrew": [brew1_1, brew1_2, brew1_dup]},
+    {"id": 2, "name": "user2", "homebrew": [brew2_1, brew2_2, brew2_3, brew2_dup]},
 ]
 
 
@@ -78,7 +80,7 @@ def on_upgrade(db):
             for homebrew in conn.execute(request).fetchall()
         }  ## { homebrew_id: {user_id, data} }
 
-        assert len(actual.keys()) == 5
+        assert len(actual.keys()) == 7
         assert 1 not in actual
         assert 2 not in actual
 
@@ -89,6 +91,17 @@ def on_upgrade(db):
         assert "brew1-2" in actual
         assert actual["brew1-2"]["user_id"] == 1
         assert actual["brew1-2"]["data"] == brew1_2
+
+        other_user1_brew = list(
+            filter(
+                lambda brew: brew["user_id"] == 1
+                and brew["data"]["id"].startswith("brew_duplicate_id"),
+                actual.values(),
+            )
+        )
+        assert other_user1_brew is not None
+        assert len(other_user1_brew) == 1
+        assert other_user1_brew[0]["data"] == brew1_dup
 
         assert "brew2-1" in actual
         assert actual["brew2-1"]["user_id"] == 2
@@ -101,6 +114,17 @@ def on_upgrade(db):
         assert "brew2-3" in actual
         assert actual["brew2-3"]["user_id"] == 2
         assert actual["brew2-3"]["data"] == brew2_3
+
+        other_user2_brew = list(
+            filter(
+                lambda brew: brew["user_id"] == 2
+                and brew["data"]["id"].startswith("brew_duplicate_id"),
+                actual.values(),
+            )
+        )
+        assert other_user2_brew is not None
+        assert len(other_user2_brew) == 1
+        assert other_user2_brew[0]["data"] == brew2_dup
 
 
 def on_downgrade(db):
