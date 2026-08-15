@@ -1,8 +1,8 @@
 import requests
+from testcontainers.community.postgres import PostgresContainer
 from testcontainers.core.network import Network
 from testcontainers.core.wait_strategies import HttpWaitStrategy
 from testcontainers.generic import ServerContainer
-from testcontainers.postgres import PostgresContainer
 
 from tests.integration.utils import get_csrf_headers
 

@@ -1,6 +1,52 @@
+[project]
+name = "forgesteel_warehouse"
+description = "A data backend for Forge Steel"
+version = "1.7.0-dev"
+license = "GPL-3.0-or-later"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "argon2-cffi",
+    "bcrypt",
+    "cryptography",
+    "Flask",
+    "flask-cors",
+    "Flask-JWT-Extended",
+    "Flask-Migrate",
+    "Flask-SQLAlchemy",
+    "gunicorn",
+    "httpx",
+    "psycopg2-binary",
+    "python-dotenv",
+    "requests",
+    "SQLAlchemy",
+]
+
+[dependency-groups]
+dev = [
+    "pip-tools",
+]
+
+test = [
+    "parameterized",
+    "pytest",
+    "pytest-cov",
+    "testcontainers",
+]
+
+all = [
+    {include-group = "dev"},
+    {include-group = "test"},
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
-line_length = 88
+line_length = 100
 profile = "black"

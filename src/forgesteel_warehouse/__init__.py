@@ -10,8 +10,6 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-from .__version__ import __version__
-
 log = logging.getLogger(__name__)
 
 ## Initialize global objects

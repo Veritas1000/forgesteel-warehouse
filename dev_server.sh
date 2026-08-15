@@ -23,6 +23,4 @@ else
     echo "FSW_CONFIG_PATH=${FSW_CONFIG_PATH}"
 fi
 
-python container/utils/bootstrap.py
-
-gunicorn --reload --config container/gunicorn_config.py 'forgesteel_warehouse:init_app()'
+python container/standalone.py

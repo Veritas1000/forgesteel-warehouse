@@ -11,3 +11,4 @@ result.xml
 compose.yaml
 *report.json
 dist
+*.egg-info

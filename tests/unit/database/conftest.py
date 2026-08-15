@@ -1,3 +1,4 @@
+
 import flask_migrate
 import pytest
 

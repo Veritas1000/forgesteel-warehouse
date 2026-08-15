@@ -3,11 +3,11 @@
 ## Generate a version from git metadata
 
 fallback_version='0.0.0'
-version_file=$1
+project_file=$1
 
-if [ -z "$version_file" ]
+if [ -z "$project_file" ]
 then
-    version_file="forgesteel_warehouse/__version__.py"
+    project_file="pyproject.toml"
 fi
 
 ## Get latest tag, trimming the 'v'
@@ -28,10 +28,11 @@ else
     ## append date and commit hash
     timestamp=$(date '+%Y%m%d%H%M%S')
     hash=$(git rev-parse --short HEAD)
-    version="${latest_tag}-${timestamp}-${hash}"
+    version="${latest_tag}+d${timestamp}-g${hash}"
 fi
 
-## write to __version__.py
-echo "__version__ = \"${version}\"" > $version_file
+## write to pyproject.toml
+sed -i "s/^version =.*$/version = \"${version}\"/" "$project_file"
+# echo "__version__ = \"${version}\"" > $project_file
 
 echo $version

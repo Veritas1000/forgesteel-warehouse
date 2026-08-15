@@ -1,4 +1,5 @@
 import re
+
 import requests
 
 from tests.integration.utils import get_csrf_access_token_from_response
@@ -15,7 +16,7 @@ def test_cycle_user_key(app_container, api_token):
     assert token is not None
 
     ## generate a new key
-    exit_code, output = app_container.exec('python /app/utils/cycle_key.py')
+    exit_code, output = app_container.exec('python cycle_key.py')
     log = output.decode() if output else ""
     token_match = re.search(r"^(\$[0-9]+\$[0-9a-f]+)$", log, re.MULTILINE)
     new_token = token_match.group(1) if token_match is not None else None

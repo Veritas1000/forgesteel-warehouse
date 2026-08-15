@@ -122,7 +122,7 @@ In addition, setting an environment variable `SKIP_BOOTSTRAP` to `True` will ski
 Running the self-hosted warehouse assumes a single, default user that is created on first start. If you want to add additional users, run the following docker command (replace `fs-warehouse-ct` with the name of your particular running container)
 
 ```bash
-docker exec -it fs-warehouse-ct python /app/utils/add_user.py
+docker exec -it fs-warehouse-ct python add_user.py
 ```
 
 The script will add a new user and output the API key for that user, the same way it does for the initial user:
@@ -143,7 +143,7 @@ $2$123abcd...aaa
 If for some reason you need to generate a new API key for a user, you can use the `cycle_key.py` helper script. To cycle the key of the default user, run:
 
 ```bash
-docker exec -it fs-warehouse-ct python /app/utils/cycle_key.py
+docker exec -it fs-warehouse-ct python cycle_key.py
 ```
 
 The script will output the new api key to the console.
@@ -189,7 +189,8 @@ Activate the virtual environment:
 
 Install dependencies:
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+pip install -e . --group all
 ```
 
 Run the api backend in development mode:
@@ -231,18 +232,16 @@ flask --app 'forgesteel_warehouse:init_app()' db migrate -m "Some migration deta
 - Make sure `pip-tools` is installed
 - Update python dependencies
 ```bash
-pip install --upgrade -r requirements.in
+pip install --upgrade . --group all
 ```
 - run tests, verify, etc
 - freeze deps
 ```bash
-pip-compile requirements.in > requirements.txt
+pip-compile pyproject.toml --output-file requirements.txt
 ```
 
 ### Version bump
 
-- update `__version__.py` with new version
-- commit
 - tag commit (in gitlab - or manually as below)
 ```bash
 git tag vX.Y.Z
@@ -252,11 +251,3 @@ git tag vX.Y.Z
 git push origin tag vX.Y.Z
 ```
 - push commit
-
-### Todos
-
-- [x] Rework API key auth
-- [x] Improve log formatting
-- [x] Add ability to pull secrets from env
-- [x] Add ability to bypass bootstrap
-- [ ] Add overview/instructions html page to root

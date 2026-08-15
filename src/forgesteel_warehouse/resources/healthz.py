@@ -1,10 +1,11 @@
+import importlib
+
 from flask import Blueprint, jsonify
-from forgesteel_warehouse import __version__
 
 healthz = Blueprint('healthz', __name__)
 
 @healthz.route('/healthz')
 def get_health():
     return jsonify({
-        'version': __version__,
+        'version': importlib.metadata.version("forgesteel_warehouse"),
         })

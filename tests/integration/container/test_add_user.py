@@ -6,7 +6,7 @@ from tests.integration.utils import get_csrf_headers, get_csrf_token
 
 
 def test_add_user_script(app_container):
-    exit_code, output = app_container.exec('python utils/add_user.py')
+    exit_code, output = app_container.exec('python add_user.py')
 
     assert exit_code == 0
 
@@ -29,7 +29,7 @@ def test_user_data_separation(app_container):
         assert add_req.status_code == 204
 
         ## Add a new user
-        exit_code, output = app_container.exec('python utils/add_user.py')
+        exit_code, output = app_container.exec('python add_user.py')
         log = output.decode() if output else ""
         token_match = re.search(r"^(\$[0-9]+\$[0-9a-f]+)$", log, re.MULTILINE)
         new_token = token_match.group(1) if token_match is not None else None

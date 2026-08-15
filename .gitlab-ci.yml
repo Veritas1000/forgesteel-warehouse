@@ -60,7 +60,8 @@ unit-tests:
   stage: test
   image: python:3.14-slim
   before_script:
-    - pip install --no-cache-dir -r requirements.txt
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir . --group test
   script:
     - python -m pytest tests/unit --cov --cov-report term --cov-report xml:coverage.xml --junitxml=unit_result.xml
   coverage: /TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
@@ -85,7 +86,8 @@ integration-tests:
     - *docker_setup
     - python -m venv ci
     - source ci/bin/activate
-    - pip install --no-cache-dir -r requirements.txt
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir . --group test
     - docker pull -q veritas1000/forgesteel-warehouse:0.1.6
     - docker pull -q veritas1000/forgesteel-warehouse:1.4.1
     - docker pull -q veritas1000/forgesteel-warehouse:latest
@@ -125,7 +127,7 @@ setup-buildenv:
     reports:
       dotenv: build.env
   script:
-    - export VERSION=$(sh generate_version.sh)
+    - export VERSION=$(sh generate_version.sh | sed 's/[+]/-/')
     - echo "VERSION=${VERSION}" > build.env && source build.env
 
 build-container:
