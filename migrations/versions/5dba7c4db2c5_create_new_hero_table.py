@@ -37,7 +37,12 @@ def upgrade():
     heroes = []
     for user_heroes in results:
         user_id = user_heroes[0]
-        heroes_data = json.loads(user_heroes[1])
+
+        if isinstance(user_heroes[1], str):
+            heroes_data = json.loads(user_heroes[1])
+        else:
+            heroes_data = user_heroes[1]
+
         for n, hero_data in enumerate(heroes_data):
             hero_id = hero_data["id"] if "id" in hero_data else f"{user_id}-generated-{n}"
             heroes.append({
@@ -74,7 +79,11 @@ def downgrade():
     heroes_per_user = {}
     for user_heroes in results:
         user_id = user_heroes[0]
-        hero_data = json.loads(user_heroes[1])
+
+        if isinstance(user_heroes[1], str):
+            hero_data = json.loads(user_heroes[1])
+        else:
+            hero_data = user_heroes[1]
 
         if user_id not in heroes_per_user:
             heroes_per_user[user_id] = []

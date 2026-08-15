@@ -27,7 +27,12 @@ def upgrade():
     for user_homebrews in results:
         prev_brew_ids.append(user_homebrews[0])
         user_id = user_homebrews[1]
-        homebrew_data = json.loads(user_homebrews[2])
+
+        if isinstance(user_homebrews[2], str):
+            homebrew_data = json.loads(user_homebrews[2])
+        else:
+            homebrew_data = user_homebrews[2]
+
         for n, brew_data in enumerate(homebrew_data):
             brew_id = (
                 brew_data["id"] if "id" in brew_data else f"{user_id}-generated-{n}"
@@ -61,7 +66,11 @@ def downgrade():
     homebrew_per_user = {}
     for user_homebrew in results:
         user_id = user_homebrew[0]
-        brew_data = json.loads(user_homebrew[1])
+
+        if isinstance(user_homebrew[1], str):
+            brew_data = json.loads(user_homebrew[1])
+        else:
+            brew_data = user_homebrew[1]
 
         if user_id not in homebrew_per_user:
             homebrew_per_user[user_id] = []

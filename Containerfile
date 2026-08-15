@@ -10,7 +10,7 @@ COPY pyproject.toml requirements.txt ./
 RUN pip install --root-user-action=ignore --no-cache-dir --upgrade pip && \
     pip install --root-user-action=ignore --no-cache-dir -r requirements.txt --target /packages
 
-COPY src/ ./
+COPY README.md src/ ./
 
 RUN ls && pip install --root-user-action=ignore --no-cache-dir . --target /packages
 
